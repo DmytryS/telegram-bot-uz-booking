@@ -1,0 +1,43 @@
+{
+  "name": "uz-booking-bot",
+  "version": "1.0.0",
+  "description": "UZ booking api bot",
+  "main": "index.js",
+  "scripts": {
+    "start": "node ./src/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DmytryS/uz-booking-bot.git"
+  },
+  "keywords": [
+    "UZ",
+    "Telegram",
+    "bot"
+  ],
+  "author": "Dmytry Shvaika",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/DmytryS/uz-booking-bot/issues"
+  },
+  "homepage": "https://github.com/DmytryS/uz-booking-bot#readme",
+  "dependencies": {
+    "babel-preset-env": "^1.7.0",
+    "moment": "^2.22.2",
+    "telegraf": "^3.25.0",
+    "uz-booking-client": "^1.0.1"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.3",
+    "babel-loader": "^7.1.2",
+    "babel-plugin-add-module-exports": "^0.2.1",
+    "babel-plugin-transform-async-to-generator": "^6.24.1",
+    "babel-plugin-transform-class-properties": "^6.24.1",
+    "babel-plugin-transform-decorators": "^6.24.1",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
+    "babel-plugin-transform-runtime": "^6.23.0",
+    "eslint": "^5.2.0"
+  }
+}
