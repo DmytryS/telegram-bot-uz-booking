@@ -1,0 +1,18 @@
+{
+  "presets": [
+    ["env", {
+      "targets": {
+        "node": "current"
+      }
+    }]
+  ],
+  "plugins": [
+    "add-module-exports",
+    "transform-class-properties",
+    "transform-decorators",
+    "transform-object-rest-spread",
+    "transform-runtime",
+    "transform-async-to-generator"
+  ],
+  "ignore": ["node_modules"]
+}

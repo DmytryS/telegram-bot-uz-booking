@@ -1,6 +1,10 @@
 .vscode
 .idea
 node_modules
+src/services/bot/node_modules
+src/services/db/node_modules
+src/services/uz/node_modules
+src/services/watcher/node_modules
 package-lock.json
 logs/*
 config/*.json
