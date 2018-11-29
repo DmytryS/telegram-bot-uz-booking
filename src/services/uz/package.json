@@ -12,7 +12,8 @@
   "author": "Dmytry Shvaika",
   "license": "MIT",
   "dependencies": {
-    "moleculer": "^0.13.4"
+    "cote": "^0.18.0",
+    "uz-booking-client": "^1.0.1"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
