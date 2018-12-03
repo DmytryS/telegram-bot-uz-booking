@@ -6,24 +6,23 @@ const uzClient = new Client();
 const uzClientResponder = new cote.Responder({
     name: 'uz responder',
     namespace: 'uz'
-    // respondsTo: [ 'buy' ]
 });
 
 uzClientResponder.on('find-station', async (req) => {
-    console.log('Find station', req);
-    
     const stations = await uzClient.Station.find(req.stationName);
 
     return stations.data;
 });
 
-uzClientResponder.on('find-train', (req, cb) => {
-    uzClient.Train.find(
+uzClientResponder.on('find-train', async (req) => {
+    const trains = await uzClient.Train.find(
         req.departureStation,
         req.targetStation,
         req.departureDate,
-        req.time,
-        cb);
+        req.time
+    );
+
+    return trains.data;
 });
 
 uzClientResponder.on('list-wagons', (req, cb) => {

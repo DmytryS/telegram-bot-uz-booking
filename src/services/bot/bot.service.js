@@ -4,6 +4,9 @@ import Stage from 'telegraf/stage';
 import cote from 'cote';
 import Calendar from 'telegraf-calendar-telegram';
 import moment from 'moment';
+import EventEmitter from 'events';
+
+const dateSelectEmitter = new EventEmitter();
 
 const uzClientRequester = new cote.Requester({
     name: 'bot uz requester',
@@ -12,8 +15,16 @@ const uzClientRequester = new cote.Requester({
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const calendar = new Calendar(bot);
 
+// calendar.setDateListener();
 
-calendar.setDateListener((context, date) => context.reply(date));
+calendar.setDateListener((context, date) => {
+    dateSelectEmitter.emit('dateSelect', context.update.callback_query.from.id, date, context);
+});
+
+const sceneStateCleaner = (ctx) => {
+    ctx.scene.state = {};
+};
+
 // bot.use(Telegraf.log());
 
 
@@ -30,21 +41,28 @@ const stationScene = new WizardScene(
             stationName: ctx.message.text
         });
 
-        ctx.reply('Выберите станцию', Extra.markup(
-            Markup
-                .keyboard(stations.map((station) => station.title))
-                .oneTime()
-        ));
+        ctx.scene.state.stations = stations;
 
         if (stations.length === 0) {
             ctx.reply('Такой станции не существует.');
             ctx.wizard.back();
+        } else {
+            ctx.reply(
+                'Выберите станцию',
+                Extra.markup(
+                    Markup
+                        .keyboard(stations.map((station) => station.title))
+                        .oneTime()
+                        .resize()
+                )
+            );
         }
 
         return ctx.wizard.next();
     },
     (ctx) => {
-        ctx.session.departureStation = ctx.message.text;
+        ctx.session.departureStation = ctx.scene.state.stations.find((station) => station.title === ctx.message.text).value;
+        sceneStateCleaner(ctx);
 
         ctx.reply('Введите станцию прибытия.');
 
@@ -56,21 +74,29 @@ const stationScene = new WizardScene(
             stationName: ctx.message.text
         });
 
+        ctx.scene.state.stations = stations;
+
         if (stations.length === 0) {
             ctx.reply('Такой станции не существует.');
             ctx.wizard.back();
+        }else {
+            ctx.reply(
+                'Выберите станцию',
+                Extra.markup(
+                    Markup
+                        .keyboard(stations.map((station) => station.title))
+                        .oneTime()
+                        .resize()
+                )
+            );
         }
-
-        ctx.reply('Выберите станцию', Extra.markup(
-            Markup
-                .keyboard(stations.map((station) => station.title))
-                .oneTime()
-        ));
+        
 
         return ctx.wizard.next();
     },
     (ctx) => {
-        ctx.session.targetStation = ctx.message.text;
+        ctx.session.targetStation = ctx.scene.state.stations.find((station) => station.title === ctx.message.text).value;
+        sceneStateCleaner(ctx);
 
         ctx.reply(
             'Выберите дату отправления.',
@@ -80,29 +106,64 @@ const stationScene = new WizardScene(
                 .getCalendar()
         );
 
-        return ctx.wizard.next();
-    },
-    async (ctx) => {
-        ctx.session.departureDate = ctx.message.text;
+        dateSelectEmitter.on('dateSelect', async (chatId, date) => {
+            if (ctx.update.message.from.id === chatId) {
+                ctx.session.departureDate = date;
+
+                ctx.reply(date);
+
+                const trains = await uzClientRequester.send({
+                    type: 'find-train',
+                    departureStation: ctx.session.departureStation,
+                    targetStation: ctx.session.targetStation,
+                    departureDate: ctx.session.departureDate,
+                    time: '00:00'
+                });
+
+
+                let responseText = `Нашел ${trains.data.list.length} поездов на ${ctx.session.departureDate}\n\n\n`;
+
+                trains.data.list.forEach((train) => {
+                    responseText += '〰〰〰〰〰〰〰〰\n' +
+                    `${train.num} ${train.from.station}-${train.to.station}\n` +
+                    `отправление ${train.from.time}\n` +
+                    `прибытие ${train.to.time}\n` +
+                    `в пути ${train.travelTime}\n\n`;
+                });
         
-        const trains = await uzClientRequester.send({
-            type: 'find-train',
-            departureStation: ctx.session.departureStation,
-            targetStation: ctx.session.departureStation,
-            departureDate: ctx.session.departureDate,
-            time: '00:00'
+                // ctx.reply('Выберите поезд.', Extra.markup(
+                //     Markup
+                //         .keyboard(trains.map((train) => train.title))
+                //         .oneTime()
+                // ));
+        
+                ctx.reply(responseText);
+
+                return ctx.wizard.next(); // Переходим к следующему обработчику.
+
+                // return ctx.wizard.next();
+            }
         });
-
-        console.log(trains);
-
-        ctx.reply('Выберите поезд.', Extra.markup(
-            Markup
-                .keyboard(trains.map((train) => train.title))
-                .oneTime()
-        ));
-
-        return ctx.wizard.next(); // Переходим к следующему обработчику.
     },
+    // async (ctx) => {
+    //     const trains = await uzClientRequester.send({
+    //         type: 'find-train',
+    //         departureStation: ctx.session.departureStation,
+    //         targetStation: ctx.session.targetStation,
+    //         departureDate: ctx.session.departureDate,
+    //         time: '00:00'
+    //     });
+
+    //     console.log(1111111111111111111, trains);
+
+    //     ctx.reply('Выберите поезд.', Extra.markup(
+    //         Markup
+    //             .keyboard(trains.map((train) => train.title))
+    //             .oneTime()
+    //     ));
+
+    //     return ctx.wizard.next(); // Переходим к следующему обработчику.
+    // },
     (ctx) => {
         ctx.reply('Финальный этап: создание матча.');
         return ctx.scene.leave();

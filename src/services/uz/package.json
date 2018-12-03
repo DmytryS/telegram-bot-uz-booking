@@ -13,7 +13,7 @@
   "license": "MIT",
   "dependencies": {
     "cote": "^0.18.0",
-    "uz-booking-client": "^1.0.1"
+    "uz-booking-client": "^1.0.2"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
