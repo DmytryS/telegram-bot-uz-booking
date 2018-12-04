@@ -1,16 +1,22 @@
 FROM node:8-alpine
 
-RUN mkdir /app
-WORKDIR /app
+RUN mkdir -p /usr/src/app
+WORKDIR /usr/src/app
 
 COPY package.json .
+RUN npm install 
 
 ENV NODE_ENV=production
 
-RUN npm install --production
+RUN npm install
 
-COPY moleculer.config.js service.js ./
+# Build the built version
+RUN npm run build
+# Remove dev packages
+RUN npm prune --production
 
-EXPOSE 4445
-EXPOSE 9229
+RUN npm run start
+
+# EXPOSE 4445
+# EXPOSE 9229
 

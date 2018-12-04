@@ -25,7 +25,20 @@ const sceneStateCleaner = (ctx) => {
     ctx.scene.state = {};
 };
 
-// bot.use(Telegraf.log());
+const trainLogo = (category) => {
+    switch (category) {
+        case 0:
+            return '🚂';
+        case 1:
+            return '🚆';
+        case 2:
+            return '🚈';
+        default:
+            return '💁';
+    }
+};
+
+bot.use(Telegraf.log());
 
 
 const stationScene = new WizardScene(
@@ -112,7 +125,7 @@ const stationScene = new WizardScene(
 
                 ctx.reply(date);
 
-                const trains = await uzClientRequester.send({
+                let trains = await uzClientRequester.send({
                     type: 'find-train',
                     departureStation: ctx.session.departureStation,
                     targetStation: ctx.session.targetStation,
@@ -120,53 +133,50 @@ const stationScene = new WizardScene(
                     time: '00:00'
                 });
 
+                trains = trains.data.list.filter((train) => train.types.length > 0);
 
-                let responseText = `Нашел ${trains.data.list.length} поездов на ${ctx.session.departureDate}\n\n\n`;
 
-                trains.data.list.forEach((train) => {
-                    responseText += '〰〰〰〰〰〰〰〰\n' +
-                    `${train.num} ${train.from.station}-${train.to.station}\n` +
-                    `отправление ${train.from.time}\n` +
-                    `прибытие ${train.to.time}\n` +
-                    `в пути ${train.travelTime}\n\n`;
+                let responseText = `Нашел ${trains.length} поездов на ${ctx.session.departureDate}\n\n`;
+
+                const trainTypes = trains
+                    .reduce((types, train) => types.findIndex((type) => type === train.category) !== -1 ? types : [ ...types, train.category ], [])
+                    .sort();
+
+                trainTypes.forEach((type) => {
+                    const trainCount = trains.filter((train) => train.category === type).length;
+
+                    switch (type) {
+                        case 0:
+                            responseText += `${trainLogo(type)} ${trainCount} - пассажирские\n`;
+                            break;
+                        case 1:
+                            responseText += `${trainLogo(type)} ${trainCount} - скоростные Интерсити+\n`;
+                            break;
+                        case 2:
+                            responseText += `${trainLogo(type)} ${trainCount} - трансформеры\n`;
+                            break;
+                        default:
+                            responseText += `${trainLogo(type)} ${trainCount} - UNKNOWN TYPE\n`;
+                    }
                 });
-        
-                // ctx.reply('Выберите поезд.', Extra.markup(
-                //     Markup
-                //         .keyboard(trains.map((train) => train.title))
-                //         .oneTime()
-                // ));
-        
+
+                trains.forEach((train) => {
+                    responseText += '\n〰〰〰〰〰〰〰〰\n\n';
+                    responseText += `${trainLogo(train.category)} ${train.num} ${train.from.station}-${train.to.station}\n`;
+                    responseText += `🕙 отправление ${train.from.time}\n`;
+                    responseText += `🕕 прибытие ${train.to.time}\n`;
+                    responseText += `⌚️ в пути ${train.travelTime}\n\n`;
+
+                    train.types.forEach((type) => {
+                        responseText += `🎫  ${type.title}: ${type.places}\n`;
+                    });
+                });
+
                 ctx.reply(responseText);
 
-                return ctx.wizard.next(); // Переходим к следующему обработчику.
-
-                // return ctx.wizard.next();
+                return ctx.scene.leave();
             }
         });
-    },
-    // async (ctx) => {
-    //     const trains = await uzClientRequester.send({
-    //         type: 'find-train',
-    //         departureStation: ctx.session.departureStation,
-    //         targetStation: ctx.session.targetStation,
-    //         departureDate: ctx.session.departureDate,
-    //         time: '00:00'
-    //     });
-
-    //     console.log(1111111111111111111, trains);
-
-    //     ctx.reply('Выберите поезд.', Extra.markup(
-    //         Markup
-    //             .keyboard(trains.map((train) => train.title))
-    //             .oneTime()
-    //     ));
-
-    //     return ctx.wizard.next(); // Переходим к следующему обработчику.
-    // },
-    (ctx) => {
-        ctx.reply('Финальный этап: создание матча.');
-        return ctx.scene.leave();
     }
 );
 
