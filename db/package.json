@@ -1,12 +1,12 @@
 {
-  "name": "ticket_watcher_microservice",
+  "name": "db_microservice",
   "version": "1.0.0",
-  "description": "ticket_watcher_microservice",
+  "description": "db microservice",
   "main": "app.js",
   "scripts": {
-    "start": "node ./dist/watcher.service.js",
-    "build": "babel watcher.service.js -d dist",
-    "dev": "node app.js",
+    "start": "node ./dist/src/db.service.js",
+    "build": "babel ./src/db.service.js -d dist",
+    "dev": "node ./src/app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Dmytry Shvaika",

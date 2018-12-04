@@ -9,9 +9,13 @@ const uzClientResponder = new cote.Responder({
 });
 
 uzClientResponder.on('find-station', async (req) => {
-    const stations = await uzClient.Station.find(req.stationName);
+    try {
+        const stations = await uzClient.Station.find(req.stationName);
 
-    return stations.data;
+        return stations.data;
+    } catch (err) {
+        return err;
+    }
 });
 
 uzClientResponder.on('find-train', async (req) => {

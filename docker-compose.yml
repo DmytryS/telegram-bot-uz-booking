@@ -1,29 +1,46 @@
-version: "3.0"
+version: "3"
 
 services:
-
-  client:
+  bot:
     build:
-      context: ./client
-    image: moleculer-client
+      context: .
+      dockerfile: bot/Dockerfile
     environment:
-      LOGLEVEL: "info"
-
-    restart: always
-    # networks:
-    #  - moleculer
-
-  worker:
+      - NODE_ENV=production
+      - BOT_TOKEN=telegram-token
+    
+  uz_requester:
     build:
-      context: ./worker
-    image: moleculer-worker
+      context: .
+      dockerfile: uz/Dockerfile
     environment:
-      LOGLEVEL: "info"
+      - NODE_ENV=production
 
-    restart: always
-    # networks:
-    #  - moleculer
+  # db:
+  #   build:
+  #     context: .
+  #     dockerfile: db/Dockerfile
+  #   environment:
+  #     - NODE_ENV=production
 
-# networks:
-#   moleculer:
-#     driver: overlay
+  # watcher:
+  #   build:
+  #     context: .
+  #     dockerfile: watcher/Dockerfile
+  #   environment:
+  #     - NODE_ENV=production
+
+  # mongo:
+  #   image: "mongo:latest"
+  #   logging:
+  #     driver: none
+  #   ports:
+  #     - 27017:27017
+
+  # rabbitmq:
+  #   image: "rabbitmq:management"
+  #   logging:
+  #     driver: none
+  #   ports:
+  #     - "5672:5672"
+  #     - "15672:15672"

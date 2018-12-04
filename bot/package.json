@@ -1,19 +1,25 @@
 {
-  "name": "uz_client_microservice",
+  "name": "bot_microservice",
   "version": "1.0.0",
-  "description": "uz api client microservice",
+  "description": "telegram bot microservice",
   "main": "app.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DmytryS/uz-booking-bot.git"
+  },
   "scripts": {
-    "start": "node ./dist/uzClient.service.js",
-    "build": "babel uzClient.service.js -d dist",
-    "dev": "node app.js",
+    "start": "node ./dist/src/bot.service.js",
+    "build": "babel ./src/bot.service.js -d dist",
+    "dev": "node ./src/app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Dmytry Shvaika",
   "license": "MIT",
   "dependencies": {
     "cote": "^0.18.0",
-    "uz-booking-client": "^1.0.2"
+    "moment": "^2.22.2",
+    "telegraf": "^3.25.0",
+    "telegraf-calendar-telegram": "^1.5.7"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",

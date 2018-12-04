@@ -38,7 +38,9 @@ const trainLogo = (category) => {
     }
 };
 
-bot.use(Telegraf.log());
+const sendErrorMessage = (ctx) => ctx.reply('❌ Произошла ошибка.');
+
+// bot.use(Telegraf.log());
 
 
 const stationScene = new WizardScene(
@@ -49,17 +51,26 @@ const stationScene = new WizardScene(
         return ctx.wizard.next();
     },
     async (ctx) => {
-        const stations = await uzClientRequester.send({
-            type: 'find-station',
-            stationName: ctx.message.text
-        });
+        let stations = [];
+        
+        try {
+            stations = await uzClientRequester.send({
+                type: 'find-station',
+                stationName: ctx.message.text
+            });
+        } catch (err) {
+            sendErrorMessage(ctx);
+            ctx.wizard.back();
 
-        ctx.scene.state.stations = stations;
+            console.log('111 ERROR', err);
+        }
 
         if (stations.length === 0) {
             ctx.reply('Такой станции не существует.');
             ctx.wizard.back();
         } else {
+            ctx.scene.state.stations = stations;
+
             ctx.reply(
                 'Выберите станцию',
                 Extra.markup(
@@ -82,17 +93,26 @@ const stationScene = new WizardScene(
         return ctx.wizard.next();
     },
     async (ctx) => {
-        const stations = await uzClientRequester.send({
-            type: 'find-station',
-            stationName: ctx.message.text
-        });
+        let stations = [];
 
-        ctx.scene.state.stations = stations;
+        try {
+            stations = await uzClientRequester.send({
+                type: 'find-station',
+                stationName: ctx.message.text
+            });
+        } catch (err) {
+            sendErrorMessage(ctx);
+
+            console.log('222 ERROR', err);
+            ctx.wizard.back();
+        }
 
         if (stations.length === 0) {
             ctx.reply('Такой станции не существует.');
             ctx.wizard.back();
         }else {
+            ctx.scene.state.stations = stations;
+
             ctx.reply(
                 'Выберите станцию',
                 Extra.markup(
@@ -197,5 +217,6 @@ stage.register(stationScene);
 bot.use(session());
 bot.use(stage.middleware());
 bot.command('station', (ctx) => ctx.scene.enter('station'));
+bot.command('ping', (ctx) => ctx.reply('pong'));
 
 bot.startPolling();
