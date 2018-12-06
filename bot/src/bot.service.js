@@ -1,3 +1,4 @@
+import '@babel/polyfill';
 import Telegraf, { Extra, Markup, session } from 'telegraf';
 import WizardScene from 'telegraf/scenes/wizard';
 import Stage from 'telegraf/stage';

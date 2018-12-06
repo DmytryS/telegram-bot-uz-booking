@@ -1,3 +1,4 @@
+import '@babel/polyfill';
 import cote from 'cote';
 import Client from 'uz-booking-client';
 
