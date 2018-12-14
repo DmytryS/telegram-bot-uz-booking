@@ -13,7 +13,9 @@
   "license": "MIT",
   "dependencies": {
     "@babel/polyfill": "^7.0.0",
-    "moleculer": "^0.13.4"
+    "cote": "^0.18.0",
+    "moleculer": "^0.13.4",
+    "mongoose": "^5.3.15"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",

@@ -1,15 +1,15 @@
 version: "3"
 
 services:
-  bot:
+  telegram-bot:
     build:
       context: .
       dockerfile: bot/Dockerfile
     environment:
       - NODE_ENV=production
-      - BOT_TOKEN=telegram-token
+      - BOT_TOKEN="paste-telegram-token
     
-  uz_requester:
+  uz-requester:
     build:
       context: .
       dockerfile: uz/Dockerfile

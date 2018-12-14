@@ -6,7 +6,7 @@ const uzClient = new Client();
 
 const uzClientResponder = new cote.Responder({
     name: 'uz responder',
-    namespace: 'uz'
+    namespace: 'uz-requester'
 });
 
 uzClientResponder.on('find-station', async (req) => {
