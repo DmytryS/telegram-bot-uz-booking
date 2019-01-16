@@ -13,5 +13,8 @@ export default {
     transformer: 'transformers',
     unknownType: 'UNKNOWN TYPE',
     choseLanguage: 'Please, chose language',
+    help: `
+/findtickets - find train tickets
+/setlanguage - set language`,
     searchResults: (trainsCount, departureDate) => `Found ${trainsCount} trains on ${departureDate}`
 };

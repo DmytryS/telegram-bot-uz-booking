@@ -1,16 +1,14 @@
 {
-  "name": "uz_client_microservice",
+  "name": "uz_telegram_bot",
   "version": "1.0.0",
-  "description": "uz api client microservice",
+  "description": "UZ telegram bot",
   "main": "app.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/DmytryS/uz-booking-bot.git"
   },
   "scripts": {
-    "start": "node ./build/uzClient.service.js",
-    "build": "babel src -d build",
-    "dev": "node ./src/app.js",
+    "start": "node ./src/app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Dmytry Shvaika",

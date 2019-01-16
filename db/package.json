@@ -4,9 +4,7 @@
   "description": "db microservice",
   "main": "app.js",
   "scripts": {
-    "start": "node ./build/db.service.js",
-    "build": "babel src -d build",
-    "dev": "node ./src/app.js",
+    "start": "node ./src/app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Dmytry Shvaika",

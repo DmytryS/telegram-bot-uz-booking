@@ -13,5 +13,11 @@ export default {
     transformer: 'трансформеры',
     unknownType: 'UNKNOWN TYPE',
     choseLanguage: 'Пожалуйста, выберите язык',
+    help: `
+        /start to create Notification
+        /url - http(s)://example.com
+        /selector to set up the query selector
+        /stop to remove Notification
+    `,
     searchResults: (trainsCount, departureDate) => `Нашел ${trainsCount} поездов на ${departureDate}`
 };

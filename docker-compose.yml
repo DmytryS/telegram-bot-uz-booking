@@ -7,8 +7,8 @@ services:
       dockerfile: bot/Dockerfile
     environment:
       - NODE_ENV=production
-      - BOT_TOKEN="paste-telegram-token
-    
+      - BOT_TOKEN=paste-telegram-token
+
   uz-requester:
     build:
       context: .
