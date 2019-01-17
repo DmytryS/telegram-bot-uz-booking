@@ -15,8 +15,10 @@
   "author": "Dmytry Shvaika",
   "license": "MIT",
   "dependencies": {
-    "@babel/polyfill": "^7.0.0",
-    "moleculer": "^0.13.4"
+    "dotenv": "^6.2.0",
+    "log4js": "^3.0.6",
+    "mongoose": "^5.4.4",
+    "uz-booking-client": "^1.0.3"
   },
   "devDependencies": {
     "@babel/cli": "^7.2.3",

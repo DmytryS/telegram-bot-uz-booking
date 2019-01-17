@@ -15,7 +15,6 @@
   "author": "Dmytry Shvaika",
   "license": "MIT",
   "dependencies": {
-    "cote": "^0.18.0",
     "dotenv": "^6.2.0",
     "log4js": "^3.0.6",
     "moment": "^2.22.2",
