@@ -4,15 +4,16 @@ import moment from 'moment';
 import UzClient from 'uz-booking-client';
 import messages from './messages';
 import { logger } from '../services';
-import { user } from '../models';
+import { User } from '../models';
 import { dateSelectEmitter, calendar } from '../app';
 
 const sceneLogger = logger.getLogger('Scene');
-const uzClient = new UzClient();
+const uzClient = new UzClient('ru');
 
-const clearSceneState = (ctx) => {
+const clearSceneState = () => (ctx) => {
     ctx.scene.state = {};
 };
+
 const trainLogo = (category) => {
     switch (category) {
         case 0:
@@ -37,7 +38,7 @@ const language = new WizardScene(
         };
 
         ctx.reply(
-            messages.en.choseLanguage,
+            messages.ru.choseLanguage,
             Extra.markup(
                 Markup
                     .keyboard([
@@ -53,7 +54,7 @@ const language = new WizardScene(
         return ctx.wizard.next();
     },
     async (ctx) => {
-        await user.updateOne(
+        await User.updateOne(
             {
                 telegramId: ctx.update.message.from.id
             },
@@ -66,14 +67,13 @@ const language = new WizardScene(
 
         return ctx.scene.leave();
     }
-);
+)
+    .leave(clearSceneState());
 
 const ticket = new WizardScene(
     'findtickets',
     (ctx) => {
-        console.log(ctx.update.message.from);
-
-        ctx.reply(messages.en.enterDepartureStation);
+        ctx.reply(messages.ru.enterDepartureStation);
 
         return ctx.wizard.next();
     },
@@ -177,12 +177,12 @@ const ticket = new WizardScene(
                     ctx.session.departureDate,
                     '00:00'
                 );
-    
+
                 trains = response.data.data.list;
             } catch (err) {
                 sceneLogger.error('An error occured during target station fetch', err);
                 sendErrorMessage(ctx);
-    
+
                 ctx.wizard.back();
             }
 
@@ -233,7 +233,8 @@ const ticket = new WizardScene(
 
         dateSelectEmitter.once(`dateSelect-${ctx.update.message.from.id}`, onDateSelected);
     }
-);
+)
+    .leave(clearSceneState());
 
 export default {
     language,

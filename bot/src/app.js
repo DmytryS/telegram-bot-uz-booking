@@ -5,10 +5,9 @@ import Calendar from 'telegraf-calendar-telegram';
 import EventEmitter from 'events';
 import { botHandler, scenes } from './lib';
 
-export const dateSelectEmitter = new EventEmitter();
-
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
+export const dateSelectEmitter = new EventEmitter();
 export const calendar = new Calendar(bot);
 
 calendar.setDateListener((context, date) => {
@@ -29,4 +28,3 @@ bot.start(botHandler.start);
 bot.help(botHandler.help);
 
 bot.startPolling();
-
