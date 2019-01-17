@@ -8,23 +8,30 @@
     "url": "https://github.com/DmytryS/uz-booking-bot.git"
   },
   "scripts": {
-    "start": "node ./src/app.js",
+    "start": "NODE_ENV=production babel-node ./src/app.js",
+    "dev": "NODE_ENV=development nodemon --exec babel-node ./src/app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Dmytry Shvaika",
   "license": "MIT",
   "dependencies": {
-    "@babel/polyfill": "^7.0.0",
     "cote": "^0.18.0",
+    "dotenv": "^6.2.0",
+    "log4js": "^3.0.6",
     "moment": "^2.22.2",
+    "mongoose": "^5.4.4",
     "telegraf": "^3.25.5",
-    "telegraf-calendar-telegram": "^1.5.7"
+    "telegraf-calendar-telegram": "^1.5.7",
+    "uz-booking-client": "^1.0.3"
   },
   "devDependencies": {
-    "@babel/cli": "^7.0.0",
-    "@babel/core": "^7.2.0",
-    "@babel/plugin-transform-regenerator": "^7.0.0",
-    "@babel/preset-env": "^7.2.0",
-    "@babel/register": "^7.0.0"
+    "@babel/cli": "^7.2.3",
+    "@babel/core": "^7.2.2",
+    "@babel/node": "^7.2.2",
+    "@babel/preset-env": "^7.2.3",
+    "eslint": "^5.11.0",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-plugin-import": "^2.14.0",
+    "nodemon": "^1.18.9"
   }
 }

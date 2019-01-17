@@ -15,6 +15,7 @@ export default {
     choseLanguage: 'Please, chose language',
     help: `
 /findtickets - find train tickets
-/setlanguage - set language`,
+/setlanguage - set language
+/help - help`,
     searchResults: (trainsCount, departureDate) => `Found ${trainsCount} trains on ${departureDate}`
 };

@@ -14,10 +14,8 @@ export default {
     unknownType: 'UNKNOWN TYPE',
     choseLanguage: 'Пожалуйста, выберите язык',
     help: `
-        /start to create Notification
-        /url - http(s)://example.com
-        /selector to set up the query selector
-        /stop to remove Notification
-    `,
+/findtickets - find train tickets
+/setlanguage - set language
+/help - help`,
     searchResults: (trainsCount, departureDate) => `Нашел ${trainsCount} поездов на ${departureDate}`
 };

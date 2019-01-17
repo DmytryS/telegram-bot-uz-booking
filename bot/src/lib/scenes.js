@@ -1,10 +1,14 @@
 import WizardScene from 'telegraf/scenes/wizard';
 import { Extra, Markup } from 'telegraf';
 import moment from 'moment';
-import dbClient from './dbClient';
-import uzClient from './uzClient';
-import messages from './messages'
-import { dateSelectEmitter, calendar } from '../bot.service';
+import UzClient from 'uz-booking-client';
+import messages from './messages';
+import { logger } from '../services';
+import { user } from '../models';
+import { dateSelectEmitter, calendar } from '../app';
+
+const sceneLogger = logger.getLogger('Scene');
+const uzClient = new UzClient();
 
 const clearSceneState = (ctx) => {
     ctx.scene.state = {};
@@ -49,16 +53,14 @@ const language = new WizardScene(
         return ctx.wizard.next();
     },
     async (ctx) => {
-        await dbClient.send({
-            type: 'update-user',
-            user: {
-                telegramId: ctx.update.message.from.id,
-                language: ctx.scene.state.languages[ctx.message.text]
+        await user.updateOne(
+            {
+                telegramId: ctx.update.message.from.id
+            },
+            {
+                language: ctx.scene.state.languages[ ctx.message.text ]
             }
-        });
-
-        console.log(`Set ${ctx.scene.state.languages[ctx.message.text]}`);
-
+        );
 
         clearSceneState(ctx);
 
@@ -79,11 +81,11 @@ const ticket = new WizardScene(
         let stations = [];
 
         try {
-            stations = await uzClient.send({
-                type: 'find-station',
-                stationName: ctx.message.text
-            });
+            const response = await uzClient.Station.find(ctx.message.text);
+
+            stations = response.data;
         } catch (err) {
+            sceneLogger.error('An error occured during departure station fetch', err);
             sendErrorMessage(ctx);
             ctx.wizard.back();
         }
@@ -119,11 +121,11 @@ const ticket = new WizardScene(
         let stations = [];
 
         try {
-            stations = await uzClient.send({
-                type: 'find-station',
-                stationName: ctx.message.text
-            });
+            const response = await uzClient.Station.find(ctx.message.text);
+
+            stations = response.data;
         } catch (err) {
+            sceneLogger.error('An error occured during target station fetch', err);
             sendErrorMessage(ctx);
 
             ctx.wizard.back();
@@ -161,26 +163,36 @@ const ticket = new WizardScene(
                 .getCalendar()
         );
 
-        dateSelectEmitter.on(`dateSelect-${ctx.update.message.from.id}`, async (date) => {
+        const onDateSelected = async function (date) {
             ctx.session.departureDate = date;
 
             ctx.reply(date);
 
-            let trains = await uzClient.send({
-                type: 'find-train',
-                departureStation: ctx.session.departureStation,
-                targetStation: ctx.session.targetStation,
-                departureDate: ctx.session.departureDate,
-                time: '00:00'
-            });
+            let trains = [];
 
-            trains = trains.data.list.filter((train) => train.types.length > 0);
+            try {
+                const response = await uzClient.Train.find(
+                    ctx.session.departureStation,
+                    ctx.session.targetStation,
+                    ctx.session.departureDate,
+                    '00:00'
+                );
+    
+                trains = response.data.data.list;
+            } catch (err) {
+                sceneLogger.error('An error occured during target station fetch', err);
+                sendErrorMessage(ctx);
+    
+                ctx.wizard.back();
+            }
+
+            trains = trains.filter((train) => train.types.length > 0);
 
 
             let responseText = `Нашел ${trains.length} поездов на ${ctx.session.departureDate}\n\n`;
 
             const trainTypes = trains
-                .reduce((types, train) => types.findIndex((type) => type === train.category) !== -1 ? types : [...types, train.category], [])
+                .reduce((types, train) => types.findIndex((type) => type === train.category) !== -1 ? types : [ ...types, train.category ], [])
                 .sort();
 
             trainTypes.forEach((type) => {
@@ -215,11 +227,11 @@ const ticket = new WizardScene(
 
             ctx.reply(responseText);
 
-            dateSelectEmitter.removeListener(`dateSelect-${ctx.update.message.from.id}`);
-
             clearSceneState(ctx);
             return ctx.scene.leave();
-        });
+        };
+
+        dateSelectEmitter.once(`dateSelect-${ctx.update.message.from.id}`, onDateSelected);
     }
 );
 
