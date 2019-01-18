@@ -70,8 +70,8 @@ const language = new WizardScene(
 )
     .leave(clearSceneState());
 
-const ticket = new WizardScene(
-    'findtickets',
+const findDirectTickets = new WizardScene(
+    'finddirecttickets',
     (ctx) => {
         ctx.reply(messages.ru.enterDepartureStation);
 
@@ -225,18 +225,34 @@ const ticket = new WizardScene(
                 });
             });
 
-            ctx.reply(responseText);
+            const inlineKeyboardButtons = [
+                [ Markup.callbackButton('📅 Посмотреть на другую дату', 'FIND_DIRECT_TICKETS') ],
+                [ Markup.callbackButton('🚉 Найти другие поезда', 'FIND_DIRECT_TICKETS') ],
+                [ Markup.callbackButton('🏳️ Установить язык', 'SET_LANGUAGE') ]
+            ];
+
+            if (trains.length === 0) {
+                inlineKeyboardButtons.push([ Markup.callbackButton('✈️🚲 Найти билеты с пересадкой', 'FIND_TICKETS') ]);
+            }
+
+            ctx.reply(
+                responseText,
+                Markup.inlineKeyboard(inlineKeyboardButtons).extra()
+            );
 
             clearSceneState(ctx);
             return ctx.scene.leave();
         };
 
         dateSelectEmitter.once(`dateSelect-${ctx.update.message.from.id}`, onDateSelected);
-    }
+    },
+    // (ctx) => {
+        
+    // }
 )
     .leave(clearSceneState());
 
 export default {
     language,
-    ticket
+    findDirectTickets
 };

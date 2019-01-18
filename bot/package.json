@@ -21,7 +21,8 @@
     "mongoose": "^5.4.4",
     "telegraf": "^3.25.5",
     "telegraf-calendar-telegram": "^1.5.7",
-    "uz-booking-client": "^1.0.4"
+    "telegraf-session-mongo": "^1.1.1",
+    "uz-booking-client": "^1.0.5"
   },
   "devDependencies": {
     "@babel/cli": "^7.2.3",
