@@ -31,8 +31,6 @@ const userSchema = new Schema({
     timestamps: true
 });
 
-userSchema.index({ email: 1 }, { unique: true });
-
 delete mongoose.connection.models.User;
 
 export default mongoose.model('User', userSchema);

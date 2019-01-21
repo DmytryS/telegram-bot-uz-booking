@@ -32,4 +32,6 @@ bot.action('SET_LANGUAGE', botHandler.setLanguage);
 bot.start(botHandler.start);
 bot.help(botHandler.help);
 
+
+
 bot.startPolling();

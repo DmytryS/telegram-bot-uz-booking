@@ -1,4 +1,5 @@
 export default {
+    greetingMessage: (firstName) => `Чем могу помочь, ${firstName}?`,
     enterDepartureStation: 'Введите станцию отправления',
     enterArrivalStation: 'Введите станцию прибытия',
     errorOccured: '❌ Произошла ошибка',
@@ -17,5 +18,10 @@ export default {
 /findtickets - find train tickets
 /setlanguage - set language
 /help - help`,
-    searchResults: (trainsCount, departureDate) => `Нашел ${trainsCount} поездов на ${departureDate}`
+    searchResults: (trainsCount, departureDate) => `Нашел ${trainsCount} поездов на ${departureDate}`,
+    searchTicketsOnAnotherDate: '📅 Посмотреть на другую дату',
+    searchAnotherDirectTrains: '🚉 Найти другие поезда',
+    searchTicketsWithInterchange: '✈️🚲 Найти билеты с пересадкой',
+    setLanguage: '🏳️ Установить язык',
+    findTickets: '🎫 Найти билеты'
 };

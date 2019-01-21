@@ -26,7 +26,7 @@ const trainLogo = (category) => {
             return '💁';
     }
 };
-const sendErrorMessage = (ctx) => ctx.reply('❌ Произошла ошибка.');
+const sendErrorMessage = (ctx) => ctx.reply(messages[ ctx.session.language ].errorOccured);
 
 const language = new WizardScene(
     'setlanguage',
@@ -38,7 +38,7 @@ const language = new WizardScene(
         };
 
         ctx.reply(
-            messages.ru.choseLanguage,
+            messages[ ctx.session.language ].choseLanguage,
             Extra.markup(
                 Markup
                     .keyboard([
@@ -54,6 +54,8 @@ const language = new WizardScene(
         return ctx.wizard.next();
     },
     async (ctx) => {
+        ctx.session.language = ctx.message.text;
+
         await User.updateOne(
             {
                 telegramId: ctx.update.message.from.id
@@ -73,7 +75,8 @@ const language = new WizardScene(
 const findDirectTickets = new WizardScene(
     'finddirecttickets',
     (ctx) => {
-        ctx.reply(messages.ru.enterDepartureStation);
+        clearSceneState(ctx);
+        ctx.reply(messages[ ctx.session.language ].enterDepartureStation);
 
         return ctx.wizard.next();
     },
@@ -91,13 +94,13 @@ const findDirectTickets = new WizardScene(
         }
 
         if (stations.length === 0) {
-            ctx.reply('Такой станции не существует.');
+            ctx.reply();
             ctx.wizard.back();
         } else {
             ctx.scene.state.stations = stations;
 
             ctx.reply(
-                'Выберите станцию',
+                messages[ ctx.session.language ].choseStation,
                 Extra.markup(
                     Markup
                         .keyboard(stations.map((station) => station.title))
@@ -110,10 +113,10 @@ const findDirectTickets = new WizardScene(
         return ctx.wizard.next();
     },
     (ctx) => {
-        ctx.session.departureStation = ctx.scene.state.stations.find((station) => station.title === ctx.message.text).value;
-        clearSceneState(ctx);
+        ctx.scene.state.departureStation = ctx.scene.state.stations.find((station) => station.title === ctx.message.text).value;
+        
 
-        ctx.reply('Введите станцию прибытия.');
+        ctx.reply(messages[ ctx.session.language ].enterArrivalStation);
 
         return ctx.wizard.next();
     },
@@ -132,13 +135,13 @@ const findDirectTickets = new WizardScene(
         }
 
         if (stations.length === 0) {
-            ctx.reply('Такой станции не существует.');
+            ctx.reply(messages[ ctx.session.language ].stationNotExists);
             ctx.wizard.back();
         } else {
             ctx.scene.state.stations = stations;
 
             ctx.reply(
-                'Выберите станцию',
+                messages[ ctx.session.language ].choseStation,
                 Extra.markup(
                     Markup
                         .keyboard(stations.map((station) => station.title))
@@ -152,11 +155,11 @@ const findDirectTickets = new WizardScene(
         return ctx.wizard.next();
     },
     (ctx) => {
-        ctx.session.targetStation = ctx.scene.state.stations.find((station) => station.title === ctx.message.text).value;
-        clearSceneState(ctx);
+        ctx.scene.state.targetStation = ctx.scene.state.stations.find((station) => station.title === ctx.message.text).value;
+        delete ctx.scene.state.stations;
 
         ctx.reply(
-            'Выберите дату отправления.',
+            messages[ ctx.session.language ].choseDepartureDate,
             calendar
                 .setMinDate(moment().toDate())
                 .setMaxDate(moment().add(1, 'month').toDate())
@@ -164,7 +167,7 @@ const findDirectTickets = new WizardScene(
         );
 
         const onDateSelected = async function (date) {
-            ctx.session.departureDate = date;
+            ctx.scene.state.departureDate = date;
 
             ctx.reply(date);
 
@@ -172,9 +175,9 @@ const findDirectTickets = new WizardScene(
 
             try {
                 const response = await uzClient.Train.find(
-                    ctx.session.departureStation,
-                    ctx.session.targetStation,
-                    ctx.session.departureDate,
+                    ctx.scene.state.departureStation,
+                    ctx.scene.state.targetStation,
+                    ctx.scene.state.departureDate,
                     '00:00'
                 );
 
@@ -189,8 +192,7 @@ const findDirectTickets = new WizardScene(
             trains = trains.filter((train) => train.types.length > 0);
 
 
-            let responseText = `Нашел ${trains.length} поездов на ${ctx.session.departureDate}\n\n`;
-
+            let responseText = messages[ ctx.session.language ].searchResults(trains.length, ctx.scene.state.departureDate);
             const trainTypes = trains
                 .reduce((types, train) => types.findIndex((type) => type === train.category) !== -1 ? types : [ ...types, train.category ], [])
                 .sort();
@@ -200,25 +202,25 @@ const findDirectTickets = new WizardScene(
 
                 switch (type) {
                     case 0:
-                        responseText += `${trainLogo(type)} ${trainCount} - пассажирские\n`;
+                        responseText += `${trainLogo(type)} ${trainCount} - ${messages[ ctx.session.language ].passenger}\n`;
                         break;
                     case 1:
-                        responseText += `${trainLogo(type)} ${trainCount} - скоростные Интерсити+\n`;
+                        responseText += `${trainLogo(type)} ${trainCount} - ${messages[ ctx.session.language ].intercity}\n`;
                         break;
                     case 2:
-                        responseText += `${trainLogo(type)} ${trainCount} - трансформеры\n`;
+                        responseText += `${trainLogo(type)} ${trainCount} - ${messages[ ctx.session.language ].transformer}\n`;
                         break;
                     default:
-                        responseText += `${trainLogo(type)} ${trainCount} - UNKNOWN TYPE\n`;
+                        responseText += `${trainLogo(type)} ${trainCount} - ${messages[ ctx.session.language ].unknownType}\n`;
                 }
             });
 
             trains.forEach((train) => {
                 responseText += '\n〰〰〰〰〰〰〰〰\n\n';
                 responseText += `${trainLogo(train.category)} ${train.num} ${train.from.station}-${train.to.station}\n`;
-                responseText += `🕙 отправление ${train.from.time}\n`;
-                responseText += `🕕 прибытие ${train.to.time}\n`;
-                responseText += `⌚️ в пути ${train.travelTime}\n\n`;
+                responseText += `🕙 ${messages[ ctx.session.language ].departure} ${train.from.time}\n`;
+                responseText += `🕕 ${messages[ ctx.session.language ].arrival} ${train.to.time}\n`;
+                responseText += `⌚️ ${messages[ ctx.session.language ].inTransit} ${train.travelTime}\n\n`;
 
                 train.types.forEach((type) => {
                     responseText += `🎫  ${type.title}: ${type.places}\n`;
@@ -226,13 +228,13 @@ const findDirectTickets = new WizardScene(
             });
 
             const inlineKeyboardButtons = [
-                [ Markup.callbackButton('📅 Посмотреть на другую дату', 'FIND_DIRECT_TICKETS') ],
-                [ Markup.callbackButton('🚉 Найти другие поезда', 'FIND_DIRECT_TICKETS') ],
-                [ Markup.callbackButton('🏳️ Установить язык', 'SET_LANGUAGE') ]
+                [ Markup.callbackButton(messages[ ctx.session.language ].searchTicketsOnAnotherDate, 'FIND_DIRECT_TICKETS') ],
+                [ Markup.callbackButton(messages[ ctx.session.language ].searchAnotherDirectTrains, 'FIND_DIRECT_TICKETS') ],
+                [ Markup.callbackButton(messages[ ctx.session.language ].setLanguage, 'SET_LANGUAGE') ]
             ];
 
             if (trains.length === 0) {
-                inlineKeyboardButtons.push([ Markup.callbackButton('✈️🚲 Найти билеты с пересадкой', 'FIND_TICKETS') ]);
+                inlineKeyboardButtons.push([ Markup.callbackButton(messages[ ctx.session.language ].searchTicketsWithInterchange, 'FIND_TICKETS') ]);
             }
 
             ctx.reply(

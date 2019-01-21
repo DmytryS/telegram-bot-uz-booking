@@ -16,12 +16,14 @@ const start = async (ctx) => {
         upsert: true,
         setDefaultsOnInsert: true
     });
+
+    ctx.session.language = ctx.session.language || 'en';
     
     ctx.reply(
-        `Чем могу помочь, ${ctx.from.first_name}?`,
+        messages[ ctx.session.language ].greetingMessage(ctx.from.first_name),
         Markup.inlineKeyboard([
-            Markup.callbackButton('🎫 Найти билеты', 'FIND_DIRECT_TICKETS'),
-            Markup.callbackButton('🏳️ Установить язык', 'SET_LANGUAGE')
+            Markup.callbackButton(messages[ ctx.session.language ].findTickets, 'FIND_DIRECT_TICKETS'),
+            Markup.callbackButton(messages[ ctx.session.language ].setLanguage, 'SET_LANGUAGE')
         ]).extra()
     );
 
