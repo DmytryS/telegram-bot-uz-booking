@@ -10,7 +10,7 @@ mkdir ${HOME}/.kube
 touch ${HOME}/.kube/config
 # cp config ${HOME}/.kube/config
  
-# Fill out missing params in kubectl config file
+# # Fill out missing params in kubectl config file
 
 echo $KUBE_CLUSTER_CERTIFICATE | base64 --decode >> ca.pem
 echo $KUBE_CLIENT_KEY | base64 --decode >> admin-key.pem
@@ -22,6 +22,7 @@ kubectl config --kubeconfig=config set-context $KUBE_CLUSTER_CONTEXT --cluster=$
 kubectl config --kubeconfig=config set-credentials $KUBE_CLUSTER_USERNAME  --client-certificate=./admin-cert.pem --client-key=./admin-key.pem
 # kubectl config set users.$KUBE_CLUSTER_USERNAME.client-certificate-data "$KUBE_CLIENT_CERTIFICATE"
 # kubectl config set users.$KUBE_CLUSTER_USERNAME.client-key-data "$KUBE_CLIENT_KEY"
-kubectl config set current-context "$KUBE_CLUSTER_CONTEXT"
+#kubectl config set current-context "$KUBE_CLUSTER_CONTEXT"
+kubectl config use-context "$KUBE_CLUSTER_CONTEXT"
 
 kubectl get pods --all-namespaces
