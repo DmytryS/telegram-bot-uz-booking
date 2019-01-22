@@ -25,4 +25,6 @@ kubectl config --kubeconfig=config set-credentials $KUBE_CLUSTER_USERNAME  --cli
 #kubectl config set current-context "$KUBE_CLUSTER_CONTEXT"
 kubectl config use-context "$KUBE_CLUSTER_CONTEXT"
 
+cat ${HOME}/.kube/config
+
 kubectl get pods --all-namespaces
