@@ -7,14 +7,14 @@ sudo mv ./kubectl /usr/local/bin/kubectl
 # curl -o config https://$GITHUB_ACCESS_TOKEN@raw.githubusercontent.com/GithubOrganization/MySecretInfrastructureRepo/master/.kube/config
  
 mkdir ${HOME}/.kube
-touch ${HOME}/.kube/config
-# cp config ${HOME}/.kube/config
+# touch ${HOME}/.kube/config
+cp ./scripts/config ${HOME}/.kube/config
  
 # # Fill out missing params in kubectl config file
 
-echo $KUBE_CLUSTER_CERTIFICATE | base64 --decode >> ca.pem
-echo $KUBE_CLIENT_KEY | base64 --decode >> admin-key.pem
-echo $KUBE_CLIENT_CERTIFICATE | base64 --decode >> admin-cert.pem
+echo $KUBE_CLUSTER_CERTIFICATE | base64 --decode >>  ${HOME}/.kube/ca.pem
+echo $KUBE_CLIENT_KEY | base64 --decode >>  ${HOME}/.kube/admin-key.pem
+echo $KUBE_CLIENT_CERTIFICATE | base64 --decode >>  ${HOME}/.kube/admin-cert.pem
 
 kubectl config --kubeconfig=config set-cluster $KUBE_CLUSTER_NAME --server=$KUBE_CLUSTER_IP --certificate-authority=./ca.pem --embed-certs=true
 kubectl config --kubeconfig=config set-context $KUBE_CLUSTER_CONTEXT --cluster=$KUBE_CLUSTER_NAME --user=$KUBE_CLUSTER_USERNAME
