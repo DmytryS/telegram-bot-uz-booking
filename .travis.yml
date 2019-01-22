@@ -1,7 +1,6 @@
 sudo: required
 language: node_js
-services:
-- docker
-
+# node_js:
+# - '8'
 script:
 - ./scripts/install.sh
