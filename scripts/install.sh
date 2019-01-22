@@ -5,7 +5,9 @@ curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s htt
 chmod +x ./kubectl
 sudo mv ./kubectl /usr/local/bin/kubectl
 # curl -o config https://$GITHUB_ACCESS_TOKEN@raw.githubusercontent.com/GithubOrganization/MySecretInfrastructureRepo/master/.kube/config
- 
+
+export KUBECONFIG=$KUBECONFIG:${HOME}/.kube/config
+
 mkdir ${HOME}/.kube
 # touch ${HOME}/.kube/config
 cp ./scripts/config ${HOME}/.kube/config
