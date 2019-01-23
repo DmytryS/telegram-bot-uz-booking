@@ -8,7 +8,7 @@ sudo mv ./kubectl /usr/local/bin/kubectl
 
 export KUBECONFIG=${HOME}/.kube/config
 
-# mkdir ${HOME}/.kube
+mkdir ${HOME}/.kube
 # touch ${HOME}/.kube/config
 # cp ./scripts/config ${HOME}/.kube/config
  
