@@ -1,7 +1,17 @@
 sudo: required
 language: node_js
+services:
+  - docker
 # node_js:
 # - '8'
+env:
+  global:
+  - COMMIT=${TRAVIS_COMMIT::8}
+before_script:
+- chmod +x ./scripts/setup-kubectl.sh
+- chmod +x ./scripts/build-bot-docker-image.sh
+- chmod +x ./scripts/push-bot-docker-image.sh
 script:
-- chmod +x ./scripts/install.sh
-- ./scripts/install.sh
+- ./scripts/setup-kubectl.sh
+- ./scripts/build-bot-docker-image.sh
+- ./scripts/push-bot-docker-image.sh
