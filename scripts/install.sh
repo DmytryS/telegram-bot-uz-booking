@@ -14,9 +14,9 @@ export KUBECONFIG=${HOME}/.kube/config
  
 # # Fill out missing params in kubectl config file
 
-# echo $KUBE_CLUSTER_CERTIFICATE | base64 --decode >>  ${HOME}/.kube/ca.pem
-# echo $KUBE_CLIENT_KEY | base64 --decode >>  ${HOME}/.kube/admin-key.pem
-# echo $KUBE_CLIENT_CERTIFICATE | base64 --decode >>  ${HOME}/.kube/admin-cert.pem
+echo $KUBE_CLUSTER_CERTIFICATE | base64 --decode >>  ${HOME}/.kube/ca.pem
+echo $KUBE_CLIENT_KEY | base64 --decode >>  ${HOME}/.kube/admin-key.pem
+echo $KUBE_CLIENT_CERTIFICATE | base64 --decode >>  ${HOME}/.kube/admin-cert.pem
 
 # kubectl config --kubeconfig=config set-cluster $KUBE_CLUSTER_NAME --server=$KUBE_CLUSTER_IP --certificate-authority=./ca.pem --embed-certs=true
 # kubectl config --kubeconfig=config set-context $KUBE_CLUSTER_CONTEXT --cluster=$KUBE_CLUSTER_NAME --user=$KUBE_CLUSTER_USERNAME
