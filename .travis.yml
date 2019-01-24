@@ -4,9 +4,6 @@ services:
   - docker
 # node_js:
 # - '8'
-env:
-  global:
-  - COMMIT=${TRAVIS_COMMIT::8}
 
 
 before_script:
@@ -26,6 +23,7 @@ before_script:
 - kubectl get pods --all-namespaces
 
 script:
-- export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo $DOCKER_BOT_REPO:(echo TRAVIS_BRANCH | sed -e 's/\//-/g') ; fi`
+- export COMMIT=${TRAVIS_COMMIT::8}
+- export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo $DOCKER_BOT_REPO:(echo $TRAVIS_BRANCH | sed -e 's/\//-/g') ; fi`
 - docker build -t $DOCKER_BOT_REPO:$COMMIT -t $DOCKER_BOT_REPO:travis-$TRAVIS_BUILD_NUMBER -t $DOCKER_BOT_REPO:$TAG ./bot/
 - docker push $DOCKER_BOT_REPO:$COMMIT
