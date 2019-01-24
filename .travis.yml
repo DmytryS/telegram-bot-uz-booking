@@ -27,7 +27,7 @@ before_script:
 
 script:
 - export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo $TRAVIS_BRANCH ; fi`
-- docker build -f Dockerfile -t $DOCKER_BOT_REPO:$COMMIT ./bot/DockerFile
+- docker build -t $DOCKER_BOT_REPO:$COMMIT -f ./bot/DockerFile
 - docker tag $REPO:$COMMIT $REPO:$TAG
 - docker tag $REPO:$COMMIT $REPO:travis-$TRAVIS_BUILD_NUMBER
 - docker push $REPO
