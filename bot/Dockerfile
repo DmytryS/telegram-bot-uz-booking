@@ -7,7 +7,6 @@ COPY ./.babelrc ./
 FROM base AS dependencies
 RUN apk add --no-cache make gcc g++ python
 RUN npm install --quiet
-RUN npm run build
 RUN npm prune --production
 
 FROM base AS release
