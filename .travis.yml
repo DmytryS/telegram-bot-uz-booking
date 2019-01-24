@@ -26,6 +26,6 @@ before_script:
 - kubectl get pods --all-namespaces
 
 script:
-- export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo $DOCKER_BOT_REPO:($TRAVIS_BRANCH | sed -e 's/\//-/g') ; fi`
+- export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo $DOCKER_BOT_REPO:(echo TRAVIS_BRANCH | sed -e 's/\//-/g') ; fi`
 - docker build -t $DOCKER_BOT_REPO:$COMMIT -t $DOCKER_BOT_REPO:travis-$TRAVIS_BUILD_NUMBER -t $DOCKER_BOT_REPO:$TAG ./bot/
 - docker push $DOCKER_BOT_REPO:$COMMIT
