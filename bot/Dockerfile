@@ -1,8 +1,8 @@
 FROM node:10-alpine AS base
 WORKDIR /usr/src/app
-COPY ./bot/src src 
-COPY ./bot/package.json ./
-COPY ./bot/.babelrc ./
+COPY ./src src 
+COPY ./package.json ./
+COPY ./.babelrc ./
 
 FROM base AS dependencies
 RUN apk add --no-cache make gcc g++ python
