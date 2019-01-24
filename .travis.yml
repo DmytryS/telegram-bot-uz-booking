@@ -23,9 +23,8 @@ before_script:
 - kubectl get pods --all-namespaces
 
 script:
-- export COMMIT=${TRAVIS_COMMIT::8}
 - export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo $TRAVIS_BRANCH | sed -e 's/\//-/g' ; fi`
-- docker build -t $DOCKER_BOT_REPO:$COMMIT -t $DOCKER_BOT_REPO:travis-$TRAVIS_BUILD_NUMBER -t $DOCKER_BOT_REPO:$TAG -t $DOCKER_BOT_REPO:$COMMIT ./bot/
+- docker build -t $DOCKER_BOT_REPO:$TAG  ./bot/
 - docker push $DOCKER_BOT_REPO:$TAG
 - kubectl --namespace=$KUBE_NAMESPACE delete deployment $KUBE_BOT_APP_NAME --cascade=true --ignore-not-found=true
 - kubectl --namespace=$KUBE_NAMESPACE run --image=$DOCKER_BOT_REPO:$TAG $KUBE_BOT_APP_NAME --env="BOT_TOKEN=$BOT_TOKEN"
