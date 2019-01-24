@@ -12,4 +12,3 @@ RUN npm prune --production
 FROM base AS release
 COPY --from=dependencies /usr/src/app/node_modules ./node_modules
 CMD ["npm", "start"]
-
