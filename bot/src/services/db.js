@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 
-const url = `${process.env.MONGO_URL}/${process.env.DB_NAME}`;
 const options = {
     useCreateIndex: true,
     useNewUrlParser: true
@@ -10,7 +9,7 @@ mongoose.Promise = Promise;
 
 mongoose.set('useFindAndModify', false);
 
-mongoose.connect(url, options);
+mongoose.connect(process.env.MONGODB_URI, options);
 
 mongoose.connection.on('connected', () => {
     console.log('Connected to MongoDB');
