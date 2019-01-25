@@ -1,6 +1,6 @@
 import { Session } from '../models';
 
-export default class MongooseSession {
+export default class TelegrafMongooseSession {
     constructor(options) {
         this.options = Object.assign({
             collection: 'Session',
@@ -8,7 +8,7 @@ export default class MongooseSession {
             getSessionKey: (ctx) => ctx.from && ctx.chat && `${ctx.from.id}:${ctx.chat.id}`
         }, options);
     }
-  
+
     getSession(key) {
         return new Promise((resolve, reject) => {
             Session.findOne({ key }).exec().then((session) => {
@@ -20,12 +20,12 @@ export default class MongooseSession {
             }).catch((err) => reject(err));
         });
     }
-  
+
     clearSession(key) {
         // debug('clear session', key);
         return Session.findOneAndRemove({ key }).exec();
     }
-  
+
     saveSession(key, session) {
         if (!session || Object.keys(session).length === 0) {
             return this.clearSession(key);
@@ -33,7 +33,7 @@ export default class MongooseSession {
         // debug('save session', key, session);
         return Session.findOneAndUpdate({ key }, { session }, { upsert: true }).exec();
     }
-  
+
     middleware() {
         return (ctx, next) => {
             const key = this.options.getSessionKey(ctx);
