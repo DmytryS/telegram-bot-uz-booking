@@ -4,7 +4,9 @@ services:
   - docker
 # node_js:
 # - '8'
-
+branches:
+  only:
+  - master
 
 before_script:
 - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
@@ -23,7 +25,7 @@ before_script:
 - kubectl get pods --all-namespaces
 
 script:
-- export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo "$(echo $TRAVIS_BRANCH | sed -e 's/\//-/g')-$(echo ${TRAVIS_COMIT::8})" ; fi`
+- export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo "$(echo $TRAVIS_BRANCH | sed -e 's/\//-/g')-$TRAVIS_COMIT" ; fi`
 - echo $TAG
 - docker build -t $DOCKER_BOT_REPO:$TAG  ./bot/
 - docker push $DOCKER_BOT_REPO:$TAG
