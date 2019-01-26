@@ -2,11 +2,9 @@ sudo: required
 language: node_js
 services:
   - docker
-# node_js:
-# - '8'
-# branches:
-#   only:
-#   - master
+branches:
+  only:
+  - master
 env:
   global:
   - COMMIT=${TRAVIS_COMMIT::8}
@@ -27,7 +25,6 @@ before_script:
 
 script:
 - export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo $TRAVIS_BRANCH | sed -e 's/\//-/g' ; fi`
-- echo $TAG
 - docker build -t $DOCKER_BOT_REPO:$COMMIT  ./bot/
 - docker tag $DOCKER_BOT_REPO:$COMMIT $DOCKER_BOT_REPO:$TAG
 - docker tag $DOCKER_BOT_REPO:$COMMIT $DOCKER_BOT_REPO:travis-$TRAVIS_BUILD_NUMBER
