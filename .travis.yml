@@ -25,6 +25,7 @@ before_script:
 
 script:
 - export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo "$(echo $TRAVIS_BRANCH | sed -e 's/\//-/g')-$TRAVIS_COMIT" ; fi`
+- export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo "$(echo ${TRAVIS_COMIT::8})-$(echo $TRAVIS_BRANCH | sed -e 's/\//-/g')" ;
 - echo $TAG
 - docker build -t $DOCKER_BOT_REPO:$TAG  ./bot/
 - docker push $DOCKER_BOT_REPO:$TAG
