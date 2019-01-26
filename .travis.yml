@@ -4,9 +4,9 @@ services:
   - docker
 # node_js:
 # - '8'
-branches:
-  only:
-  - master
+# branches:
+#   only:
+#   - master
 
 before_script:
 - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
@@ -22,7 +22,6 @@ before_script:
 - kubectl config set-cluster $KUBE_CLUSTER_NAME --server=$KUBE_CLUSTER_IP --certificate-authority=${HOME}/.kube/ca.pem
 - kubectl config set-context $KUBE_CLUSTER_CONTEXT --user=$KUBE_CLUSTER_USERNAME --namespace=default --cluster=$KUBE_CLUSTER_NAME
 - kubectl config use-context $KUBE_CLUSTER_CONTEXT
-- kubectl get pods --all-namespaces
 
 script:
 - export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo "$(echo $TRAVIS_BRANCH | sed -e 's/\//-/g')-$TRAVIS_COMIT" ; fi`
