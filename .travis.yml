@@ -7,7 +7,9 @@ services:
 # branches:
 #   only:
 #   - master
-
+env:
+  global:
+  - COMMIT=${TRAVIS_COMMIT::8}
 before_script:
 - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 - curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
@@ -24,10 +26,11 @@ before_script:
 - kubectl config use-context $KUBE_CLUSTER_CONTEXT
 
 script:
-- export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo "$(echo $TRAVIS_BRANCH | sed -e 's/\//-/g')-$TRAVIS_COMIT" ; fi`
-- export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo "$(echo ${TRAVIS_COMIT::8})-$(echo $TRAVIS_BRANCH | sed -e 's/\//-/g')" ;
+- export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo $TRAVIS_BRANCH | sed -e 's/\//-/g' ; fi`
 - echo $TAG
-- docker build -t $DOCKER_BOT_REPO:$TAG  ./bot/
-- docker push $DOCKER_BOT_REPO:$TAG
+- docker build -t $DOCKER_BOT_REPO:$COMMIT  ./bot/
+- docker tag $DOCKER_BOT_REPO:$COMMIT $DOCKER_BOT_REPO:$TAG
+- docker tag $DOCKER_BOT_REPO:$COMMIT $DOCKER_BOT_REPO:travis-$TRAVIS_BUILD_NUMBER
+- docker push $DOCKER_BOT_REPO
 - kubectl --namespace=$KUBE_NAMESPACE delete deployment $KUBE_BOT_APP_NAME --cascade=true --ignore-not-found=true
 - kubectl --namespace=$KUBE_NAMESPACE run --image=$DOCKER_BOT_REPO:$TAG $KUBE_BOT_APP_NAME --env="BOT_TOKEN=${BOT_TOKEN}" --env="MONGODB_URI=${MONGODB_URI}"
