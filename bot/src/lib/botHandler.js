@@ -1,34 +1,44 @@
 import messages from './messages';
-import dbClient from './dbClient'
+import { User } from '../models';
+import { Extra, Markup } from 'telegraf';
 
 const start = async (ctx) => {
-    // const user = await dbClient.send({
-    //     type: 'create-user',
-    //     user: {
-    //         telegramId: ctx.update.message.from.id,
-    //         firstName: ctx.update.message.from.first_name,
-    //         lastName: ctx.update.message.from.last_name,
-    //         userName: ctx.update.message.from.username
-    //     }
-    // });
+    await User.updateOne({
+        telegramId: ctx.update.message.from.id
+    },
+    {
+        telegramId: ctx.update.message.from.id,
+        firstName: ctx.update.message.from.first_name,
+        lastName: ctx.update.message.from.last_name,
+        userName: ctx.update.message.from.username
+    },
+    {
+        upsert: true,
+        setDefaultsOnInsert: true
+    });
 
-    // console.log(user);
-
+    ctx.session.language = ctx.session.language || 'en';
+    
+    ctx.reply(
+        messages[ ctx.session.language ].greetingMessage(ctx.from.first_name),
+        Markup.inlineKeyboard([
+            Markup.callbackButton(messages[ ctx.session.language ].findTickets, 'FIND_DIRECT_TICKETS'),
+            Markup.callbackButton(messages[ ctx.session.language ].setLanguage, 'SET_LANGUAGE')
+        ]).extra()
+    );
 
     // ctx.scene.enter('setlanguage');
-    console.log('Start');
-
 };
 
-const help = ctx => ctx.reply(messages.en.help);
+const help = (ctx) => ctx.reply(messages.en.help);
 
 const setLanguage = (ctx) => ctx.scene.enter('setlanguage');
 
-const findTickets = (ctx) => ctx.scene.enter('findtickets');
+const findDirectTickets = (ctx) => ctx.scene.enter('finddirecttickets');
 
 export default {
     start,
     help,
     setLanguage,
-    findTickets
+    findDirectTickets
 };

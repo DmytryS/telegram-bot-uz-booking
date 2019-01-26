@@ -4,3 +4,5 @@ node_modules
 logs
 build
 package-lock.json
+.env
+/logs/*

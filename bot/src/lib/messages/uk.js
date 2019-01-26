@@ -1,4 +1,5 @@
 export default {
+    greetingMessage: (firstName) => `Чим можу допомогти, ${firstName}?`,
     enterDepartureStation: 'Введiть станцiю вiдправлення',
     enterArrivalStation: 'Введiть станцiю прибуття',
     errorOccured: '❌ Відбулася помилка',
@@ -14,10 +15,13 @@ export default {
     unknownType: 'UNKNOWN TYPE',
     choseLanguage: 'Будь ласка, виберіть мову',
     help: `
-        /start to create Notification
-        /url - http(s)://example.com
-        /selector to set up the query selector
-        /stop to remove Notification
-    `,
-    searchResults: (trainsCount, departureDate) => `Знайшов ${trainsCount} поїздів на ${departureDate}`
+/findtickets - find train tickets
+/setlanguage - set language
+/help - help`,
+    searchResults: (trainsCount, departureDate) => `Знайшов ${trainsCount} поїздів на ${departureDate}`,
+    searchTicketsOnAnotherDate: '📅 Подивитися на іншу дату',
+    searchAnotherDirectTrains: '🚉 Знайти інші поїзди',
+    searchTicketsWithInterchange: '✈️🚲 Знайти квитки з пересадкою',
+    setLanguage: '🏳️ Встановити мову',
+    findTickets: '🎫 Знайти квитки'
 };

@@ -1,5 +1,1 @@
-require('@babel/register')({
-    retainLines: true
-});
-
-require('./watcher.service');
+console.log('Start');

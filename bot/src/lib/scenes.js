@@ -1,14 +1,19 @@
 import WizardScene from 'telegraf/scenes/wizard';
 import { Extra, Markup } from 'telegraf';
 import moment from 'moment';
-import dbClient from './dbClient';
-import uzClient from './uzClient';
-import messages from './messages'
-import { dateSelectEmitter, calendar } from '../bot.service';
+import UzClient from 'uz-booking-client';
+import messages from './messages';
+import { logger } from '../services';
+import { User } from '../models';
+import { dateSelectEmitter, calendar } from '../app';
 
-const clearSceneState = (ctx) => {
+const sceneLogger = logger.getLogger('Scene');
+const uzClient = new UzClient('ru');
+
+const clearSceneState = () => (ctx) => {
     ctx.scene.state = {};
 };
+
 const trainLogo = (category) => {
     switch (category) {
         case 0:
@@ -21,7 +26,7 @@ const trainLogo = (category) => {
             return '💁';
     }
 };
-const sendErrorMessage = (ctx) => ctx.reply('❌ Произошла ошибка.');
+const sendErrorMessage = (ctx) => ctx.reply(messages[ ctx.session.language ].errorOccured);
 
 const language = new WizardScene(
     'setlanguage',
@@ -33,7 +38,7 @@ const language = new WizardScene(
         };
 
         ctx.reply(
-            messages.en.choseLanguage,
+            messages[ ctx.session.language ].choseLanguage,
             Extra.markup(
                 Markup
                     .keyboard([
@@ -49,29 +54,29 @@ const language = new WizardScene(
         return ctx.wizard.next();
     },
     async (ctx) => {
-        await dbClient.send({
-            type: 'update-user',
-            user: {
-                telegramId: ctx.update.message.from.id,
-                language: ctx.scene.state.languages[ctx.message.text]
+        ctx.session.language = ctx.message.text;
+
+        await User.updateOne(
+            {
+                telegramId: ctx.update.message.from.id
+            },
+            {
+                language: ctx.scene.state.languages[ ctx.message.text ]
             }
-        });
-
-        console.log(`Set ${ctx.scene.state.languages[ctx.message.text]}`);
-
+        );
 
         clearSceneState(ctx);
 
         return ctx.scene.leave();
     }
-);
+)
+    .leave(clearSceneState());
 
-const ticket = new WizardScene(
-    'findtickets',
+const findDirectTickets = new WizardScene(
+    'finddirecttickets',
     (ctx) => {
-        console.log(ctx.update.message.from);
-
-        ctx.reply(messages.en.enterDepartureStation);
+        clearSceneState(ctx);
+        ctx.reply(messages[ ctx.session.language ].enterDepartureStation);
 
         return ctx.wizard.next();
     },
@@ -79,23 +84,23 @@ const ticket = new WizardScene(
         let stations = [];
 
         try {
-            stations = await uzClient.send({
-                type: 'find-station',
-                stationName: ctx.message.text
-            });
+            const response = await uzClient.Station.find(ctx.message.text);
+
+            stations = response.data;
         } catch (err) {
+            sceneLogger.error('An error occured during departure station fetch', err);
             sendErrorMessage(ctx);
             ctx.wizard.back();
         }
 
         if (stations.length === 0) {
-            ctx.reply('Такой станции не существует.');
+            ctx.reply();
             ctx.wizard.back();
         } else {
             ctx.scene.state.stations = stations;
 
             ctx.reply(
-                'Выберите станцию',
+                messages[ ctx.session.language ].choseStation,
                 Extra.markup(
                     Markup
                         .keyboard(stations.map((station) => station.title))
@@ -108,10 +113,10 @@ const ticket = new WizardScene(
         return ctx.wizard.next();
     },
     (ctx) => {
-        ctx.session.departureStation = ctx.scene.state.stations.find((station) => station.title === ctx.message.text).value;
-        clearSceneState(ctx);
+        ctx.scene.state.departureStation = ctx.scene.state.stations.find((station) => station.title === ctx.message.text).value;
+        
 
-        ctx.reply('Введите станцию прибытия.');
+        ctx.reply(messages[ ctx.session.language ].enterArrivalStation);
 
         return ctx.wizard.next();
     },
@@ -119,24 +124,24 @@ const ticket = new WizardScene(
         let stations = [];
 
         try {
-            stations = await uzClient.send({
-                type: 'find-station',
-                stationName: ctx.message.text
-            });
+            const response = await uzClient.Station.find(ctx.message.text);
+
+            stations = response.data;
         } catch (err) {
+            sceneLogger.error('An error occured during target station fetch', err);
             sendErrorMessage(ctx);
 
             ctx.wizard.back();
         }
 
         if (stations.length === 0) {
-            ctx.reply('Такой станции не существует.');
+            ctx.reply(messages[ ctx.session.language ].stationNotExists);
             ctx.wizard.back();
         } else {
             ctx.scene.state.stations = stations;
 
             ctx.reply(
-                'Выберите станцию',
+                messages[ ctx.session.language ].choseStation,
                 Extra.markup(
                     Markup
                         .keyboard(stations.map((station) => station.title))
@@ -150,37 +155,46 @@ const ticket = new WizardScene(
         return ctx.wizard.next();
     },
     (ctx) => {
-        ctx.session.targetStation = ctx.scene.state.stations.find((station) => station.title === ctx.message.text).value;
-        clearSceneState(ctx);
+        ctx.scene.state.targetStation = ctx.scene.state.stations.find((station) => station.title === ctx.message.text).value;
+        delete ctx.scene.state.stations;
 
         ctx.reply(
-            'Выберите дату отправления.',
+            messages[ ctx.session.language ].choseDepartureDate,
             calendar
                 .setMinDate(moment().toDate())
                 .setMaxDate(moment().add(1, 'month').toDate())
                 .getCalendar()
         );
 
-        dateSelectEmitter.on(`dateSelect-${ctx.update.message.from.id}`, async (date) => {
-            ctx.session.departureDate = date;
+        const onDateSelected = async function (date) {
+            ctx.scene.state.departureDate = date;
 
             ctx.reply(date);
 
-            let trains = await uzClient.send({
-                type: 'find-train',
-                departureStation: ctx.session.departureStation,
-                targetStation: ctx.session.targetStation,
-                departureDate: ctx.session.departureDate,
-                time: '00:00'
-            });
+            let trains = [];
 
-            trains = trains.data.list.filter((train) => train.types.length > 0);
+            try {
+                const response = await uzClient.Train.find(
+                    ctx.scene.state.departureStation,
+                    ctx.scene.state.targetStation,
+                    ctx.scene.state.departureDate,
+                    '00:00'
+                );
+
+                trains = response.data.data.list;
+            } catch (err) {
+                sceneLogger.error('An error occured during target station fetch', err);
+                sendErrorMessage(ctx);
+
+                ctx.wizard.back();
+            }
+
+            trains = trains.filter((train) => train.types.length > 0);
 
 
-            let responseText = `Нашел ${trains.length} поездов на ${ctx.session.departureDate}\n\n`;
-
+            let responseText = messages[ ctx.session.language ].searchResults(trains.length, ctx.scene.state.departureDate);
             const trainTypes = trains
-                .reduce((types, train) => types.findIndex((type) => type === train.category) !== -1 ? types : [...types, train.category], [])
+                .reduce((types, train) => types.findIndex((type) => type === train.category) !== -1 ? types : [ ...types, train.category ], [])
                 .sort();
 
             trainTypes.forEach((type) => {
@@ -188,42 +202,59 @@ const ticket = new WizardScene(
 
                 switch (type) {
                     case 0:
-                        responseText += `${trainLogo(type)} ${trainCount} - пассажирские\n`;
+                        responseText += `${trainLogo(type)} ${trainCount} - ${messages[ ctx.session.language ].passenger}\n`;
                         break;
                     case 1:
-                        responseText += `${trainLogo(type)} ${trainCount} - скоростные Интерсити+\n`;
+                        responseText += `${trainLogo(type)} ${trainCount} - ${messages[ ctx.session.language ].intercity}\n`;
                         break;
                     case 2:
-                        responseText += `${trainLogo(type)} ${trainCount} - трансформеры\n`;
+                        responseText += `${trainLogo(type)} ${trainCount} - ${messages[ ctx.session.language ].transformer}\n`;
                         break;
                     default:
-                        responseText += `${trainLogo(type)} ${trainCount} - UNKNOWN TYPE\n`;
+                        responseText += `${trainLogo(type)} ${trainCount} - ${messages[ ctx.session.language ].unknownType}\n`;
                 }
             });
 
             trains.forEach((train) => {
                 responseText += '\n〰〰〰〰〰〰〰〰\n\n';
                 responseText += `${trainLogo(train.category)} ${train.num} ${train.from.station}-${train.to.station}\n`;
-                responseText += `🕙 отправление ${train.from.time}\n`;
-                responseText += `🕕 прибытие ${train.to.time}\n`;
-                responseText += `⌚️ в пути ${train.travelTime}\n\n`;
+                responseText += `🕙 ${messages[ ctx.session.language ].departure} ${train.from.time}\n`;
+                responseText += `🕕 ${messages[ ctx.session.language ].arrival} ${train.to.time}\n`;
+                responseText += `⌚️ ${messages[ ctx.session.language ].inTransit} ${train.travelTime}\n\n`;
 
                 train.types.forEach((type) => {
                     responseText += `🎫  ${type.title}: ${type.places}\n`;
                 });
             });
 
-            ctx.reply(responseText);
+            const inlineKeyboardButtons = [
+                [ Markup.callbackButton(messages[ ctx.session.language ].searchTicketsOnAnotherDate, 'FIND_DIRECT_TICKETS') ],
+                [ Markup.callbackButton(messages[ ctx.session.language ].searchAnotherDirectTrains, 'FIND_DIRECT_TICKETS') ],
+                [ Markup.callbackButton(messages[ ctx.session.language ].setLanguage, 'SET_LANGUAGE') ]
+            ];
 
-            dateSelectEmitter.removeListener(`dateSelect-${ctx.update.message.from.id}`);
+            if (trains.length === 0) {
+                inlineKeyboardButtons.push([ Markup.callbackButton(messages[ ctx.session.language ].searchTicketsWithInterchange, 'FIND_TICKETS') ]);
+            }
+
+            ctx.reply(
+                responseText,
+                Markup.inlineKeyboard(inlineKeyboardButtons).extra()
+            );
 
             clearSceneState(ctx);
             return ctx.scene.leave();
-        });
-    }
-);
+        };
+
+        dateSelectEmitter.once(`dateSelect-${ctx.update.message.from.id}`, onDateSelected);
+    },
+    // (ctx) => {
+        
+    // }
+)
+    .leave(clearSceneState());
 
 export default {
     language,
-    ticket
+    findDirectTickets
 };

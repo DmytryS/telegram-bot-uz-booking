@@ -18,7 +18,7 @@ spec:
         env:
           - name: PG
             value: "true"
-          - name: BOT_TOKEN
+          - name: TOKEN
             value: "paste-telegram-token"
           - name: COTE_MULTICAST_ADDRESS
             value: "239.1.11.131"
