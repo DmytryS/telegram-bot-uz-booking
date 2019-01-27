@@ -8,7 +8,6 @@ import { User } from '../models';
 import { dateSelectEmitter, calendar } from '../app';
 
 const sceneLogger = logger.getLogger('Scene');
-const uzClient = new UzClient('ru');
 
 const clearSceneState = () => (ctx) => {
     ctx.scene.state = {};
@@ -84,6 +83,7 @@ const findDirectTickets = new WizardScene(
         let stations = [];
 
         try {
+            const uzClient = new UzClient(ctx.session.language);
             const response = await uzClient.Station.find(ctx.message.text);
 
             stations = response.data;
@@ -114,7 +114,7 @@ const findDirectTickets = new WizardScene(
     },
     (ctx) => {
         ctx.scene.state.departureStation = ctx.scene.state.stations.find((station) => station.title === ctx.message.text).value;
-        
+
 
         ctx.reply(messages[ ctx.session.language ].enterArrivalStation);
 
@@ -124,6 +124,7 @@ const findDirectTickets = new WizardScene(
         let stations = [];
 
         try {
+            const uzClient = new UzClient(ctx.session.language);
             const response = await uzClient.Station.find(ctx.message.text);
 
             stations = response.data;
@@ -174,6 +175,7 @@ const findDirectTickets = new WizardScene(
             let trains = [];
 
             try {
+                const uzClient = new UzClient(ctx.session.language);
                 const response = await uzClient.Train.find(
                     ctx.scene.state.departureStation,
                     ctx.scene.state.targetStation,
@@ -249,7 +251,7 @@ const findDirectTickets = new WizardScene(
         dateSelectEmitter.once(`dateSelect-${ctx.update.message.from.id}`, onDateSelected);
     },
     // (ctx) => {
-        
+
     // }
 )
     .leave(clearSceneState());
