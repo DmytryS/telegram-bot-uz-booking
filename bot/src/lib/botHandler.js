@@ -1,6 +1,6 @@
 import messages from './messages';
 import { User } from '../models';
-import { Extra, Markup } from 'telegraf';
+import { Markup } from 'telegraf';
 
 const start = async (ctx) => {
     await User.updateOne({
@@ -18,7 +18,7 @@ const start = async (ctx) => {
     });
 
     ctx.session.language = ctx.session.language || 'en';
-    
+
     ctx.reply(
         messages[ ctx.session.language ].greetingMessage(ctx.from.first_name),
         Markup.inlineKeyboard([

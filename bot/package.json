@@ -9,7 +9,7 @@
   },
   "scripts": {
     "start": "NODE_ENV=production babel-node ./src/app.js",
-    "dev": "NODE_ENV=development nodemon --exec babel-node ./src/app.js",
+    "development": "NODE_ENV=development nodemon --exec babel-node ./src/app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Dmytry Shvaika",
@@ -21,7 +21,6 @@
     "mongoose": "^5.4.4",
     "telegraf": "^3.25.5",
     "telegraf-calendar-telegram": "^1.5.7",
-    "telegraf-session-mongo": "^1.1.1",
     "uz-booking-client": "^1.0.5"
   },
   "devDependencies": {
