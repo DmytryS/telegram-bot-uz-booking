@@ -2,9 +2,6 @@ sudo: required
 language: node_js
 services:
   - docker
-env:
-  global:
-  - COMMIT=${TRAVIS_COMMIT::8}
 before_script:
 - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 - curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
@@ -21,9 +18,8 @@ before_script:
 - kubectl config use-context $KUBE_CLUSTER_CONTEXT
 
 script:
-- export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo $COMMIT ; fi` #// echo $TRAVIS_BRANCH | sed -e 's/\//-/g'
-- echo $TAG
-- docker build -t $DOCKER_BOT_REPO:$COMMIT ./bot/
-- docker push $DOCKER_BOT_REPO:$COMMIT
+- export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo ${TRAVIS_COMMIT::8} ; fi`
+- docker build -t $DOCKER_BOT_REPO:$TAG ./bot/
+- docker push $DOCKER_BOT_REPO:$TAG
 - kubectl --namespace=$KUBE_NAMESPACE delete deployment $KUBE_BOT_APP_NAME --cascade=true --ignore-not-found=true
-- kubectl --namespace=$KUBE_NAMESPACE run --image=$DOCKER_BOT_REPO:$COMMIT $KUBE_BOT_APP_NAME --env="BOT_TOKEN=${BOT_TOKEN}" --env="MONGODB_URI=${MONGODB_URI}"
+- kubectl --namespace=$KUBE_NAMESPACE run --image=$DOCKER_BOT_REPO:$TAG $KUBE_BOT_APP_NAME --env="BOT_TOKEN=${BOT_TOKEN}" --env="MONGODB_URI=${MONGODB_URI}"
