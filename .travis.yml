@@ -2,9 +2,6 @@ sudo: required
 language: node_js
 services:
   - docker
-branches:
-  only:
-  - master
 env:
   global:
   - COMMIT=${TRAVIS_COMMIT::8}
@@ -26,7 +23,7 @@ before_script:
 script:
 - export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo $COMMIT ; fi` #// echo $TRAVIS_BRANCH | sed -e 's/\//-/g'
 - echo $TAG
-- docker build -t $DOCKER_BOT_REPO:$COMMIT  ./bot/
+- docker build -t $DOCKER_BOT_REPO:$COMMIT ./bot/
 - docker push $DOCKER_BOT_REPO:$COMMIT
 - kubectl --namespace=$KUBE_NAMESPACE delete deployment $KUBE_BOT_APP_NAME --cascade=true --ignore-not-found=true
 - kubectl --namespace=$KUBE_NAMESPACE run --image=$DOCKER_BOT_REPO:$COMMIT $KUBE_BOT_APP_NAME --env="BOT_TOKEN=${BOT_TOKEN}" --env="MONGODB_URI=${MONGODB_URI}"
