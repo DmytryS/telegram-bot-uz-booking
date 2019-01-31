@@ -1,1 +1,1 @@
-export { as  } from './Queue';
+export { default as Task } from './task';

@@ -51,17 +51,18 @@ const language = new WizardScene(
             }
         );
 
-        clearSceneState(ctx);
+        // clearSceneState(ctx);
+        
+        ctx
 
         return ctx.scene.leave();
     }
-)
-    .leave(clearSceneState());
+);
 
 const findDirectTickets = new WizardScene(
     'finddirecttickets',
     (ctx) => {
-        clearSceneState(ctx);
+        // clearSceneState(ctx);
         ctx.reply(messages[ ctx.session.language ].enterDepartureStation);
 
         return ctx.wizard.next();
@@ -192,7 +193,11 @@ const findDirectTickets = new WizardScene(
             }
 
             ctx.reply(
-                print.printTrainsList(trains),
+                print.printTrainsList(
+                    trains,
+                    ctx.scene.state.departureDate,
+                    ctx.session.language
+                ),
                 Markup.inlineKeyboard(inlineKeyboardButtons).extra()
             );
 

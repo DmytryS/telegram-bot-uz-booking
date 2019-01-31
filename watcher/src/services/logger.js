@@ -24,5 +24,5 @@ if (process.env.NODE_ENV !== 'production') {
 }
     
 log4js.configure({ categories, appenders });
-  
+
 export default log4js;
