@@ -188,6 +188,7 @@ const findDirectTickets = new WizardScene(
 
             if (trains.length === 0) {
                 inlineKeyboardButtons.push([ Markup.callbackButton(messages[ ctx.session.language ].searchTicketsWithInterchange, 'FIND_TICKETS') ]);
+                inlineKeyboardButtons.push([ Markup.callbackButton(messages[ ctx.session.language ].remindMeWhenAvailable, 'REMIND_ME') ]);
             }
 
             ctx.reply(

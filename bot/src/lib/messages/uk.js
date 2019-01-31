@@ -22,6 +22,7 @@ export default {
     searchTicketsOnAnotherDate: '📅 Подивитися на іншу дату',
     searchAnotherDirectTrains: '🚉 Знайти інші поїзди',
     searchTicketsWithInterchange: '✈️🚲 Знайти квитки з пересадкою',
-    setLanguage: '🏳️ Встановити мову',
-    findTickets: '🎫 Знайти квитки'
+    setLanguage: '🏳️ Обрати мову',
+    findTickets: '🎫 Знайти квитки',
+    remindMeWhenAvailable: 'Повідомити, коли будуть у наявності'
 };

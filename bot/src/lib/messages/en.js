@@ -22,6 +22,7 @@ export default {
     searchTicketsOnAnotherDate: '📅 Search tickets on another date',
     searchAnotherDirectTrains: '🚉 Find another trains',
     searchTicketsWithInterchange: '✈️🚲 Find tickets with interchange',
-    setLanguage: '🏳️ Set language',
-    findTickets: '🎫 Find tickets'
+    setLanguage: '🏳️ Select language',
+    findTickets: '🎫 Find tickets',
+    remindMeWhenAvailable: 'Remind me, when get in stock'
 };
