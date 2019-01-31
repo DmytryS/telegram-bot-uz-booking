@@ -52,8 +52,6 @@ const language = new WizardScene(
         );
 
         // clearSceneState(ctx);
-        
-        ctx
 
         return ctx.scene.leave();
     }
