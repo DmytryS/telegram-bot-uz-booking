@@ -96,17 +96,16 @@ const findDirectTickets = new WizardScene(
             );
         }
 
-        return ctx.wizard.next();
+        ctx.wizard.next();
     },
     (ctx) => {
         ctx.scene.state.departureStation = ctx.scene.state.stations.find((station) => station.title === ctx.message.text).value;
-
 
         if (!ctx.scene.state.departureStation) {
             ctx.wizard.back();
         }
 
-        return ctx.wizard.next();
+        ctx.wizard.next();
     },
     (ctx) => {
         ctx.reply(messages[ ctx.session.language ].enterArrivalStation);
