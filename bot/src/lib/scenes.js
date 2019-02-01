@@ -37,10 +37,10 @@ const language = new WizardScene(
             )
         );
 
-        return ctx.wizard.next();
+        ctx.wizard.next();
     },
     async (ctx) => {
-        ctx.session.language = ctx.message.text;
+        ctx.session.language = ctx.scene.state.languages[ ctx.message.text ];
 
         await User.updateOne(
             {
@@ -53,7 +53,7 @@ const language = new WizardScene(
 
         // clearSceneState(ctx);
 
-        return ctx.scene.leave();
+        ctx.scene.leave();
     }
 );
 
@@ -63,7 +63,7 @@ const findDirectTickets = new WizardScene(
         // clearSceneState(ctx);
         ctx.reply(messages[ ctx.session.language ].enterDepartureStation);
 
-        return ctx.wizard.next();
+        ctx.wizard.next();
     },
     async (ctx) => {
         let stations = [];
@@ -80,7 +80,7 @@ const findDirectTickets = new WizardScene(
         }
 
         if (stations.length === 0) {
-            ctx.reply();
+            ctx.reply(messages[ ctx.session.language ].stationNotExists);
             ctx.wizard.back();
         } else {
             ctx.scene.state.stations = stations;
@@ -102,9 +102,16 @@ const findDirectTickets = new WizardScene(
         ctx.scene.state.departureStation = ctx.scene.state.stations.find((station) => station.title === ctx.message.text).value;
 
 
-        ctx.reply(messages[ ctx.session.language ].enterArrivalStation);
+        if (!ctx.scene.state.departureStation) {
+            ctx.wizard.back();
+        }
 
         return ctx.wizard.next();
+    },
+    (ctx) => {
+        ctx.reply(messages[ ctx.session.language ].enterArrivalStation);
+
+        ctx.wizard.next();
     },
     async (ctx) => {
         let stations = [];
@@ -139,10 +146,19 @@ const findDirectTickets = new WizardScene(
         }
 
 
-        return ctx.wizard.next();
+        ctx.wizard.next();
     },
     (ctx) => {
         ctx.scene.state.targetStation = ctx.scene.state.stations.find((station) => station.title === ctx.message.text).value;
+        
+        if (!ctx.scene.state.targetStation) {
+            ctx.wizard.back();
+        }
+
+        ctx.wizard.next();
+    },
+    async (ctx) => {
+        
         delete ctx.scene.state.stations;
 
         ctx.reply(
@@ -201,16 +217,12 @@ const findDirectTickets = new WizardScene(
             );
 
             clearSceneState(ctx);
-            return ctx.scene.leave();
+            ctx.scene.leave();
         };
 
         dateSelectEmitter.once(`dateSelect-${ctx.update.message.from.id}`, onDateSelected);
-    },
-    // (ctx) => {
-
-    // }
-)
-    .leave(clearSceneState());
+    }
+);
 
 export default {
     language,

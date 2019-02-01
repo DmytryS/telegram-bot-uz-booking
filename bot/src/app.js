@@ -7,6 +7,7 @@ import EventEmitter from 'events';
 import { logger } from './services';
 import { botHandler, scenes, middlewares } from './lib';
 
+const { enter } = Stage;
 const appLogger = logger.getLogger('App');
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
@@ -17,10 +18,7 @@ calendar.setDateListener((context, date) => {
     dateSelectEmitter.emit(`dateSelect-${context.update.callback_query.from.id}`, date);
 });
 
-const stage = new Stage();
-
-stage.register(scenes.findDirectTickets);
-stage.register(scenes.language);
+const stage = new Stage([ scenes.findDirectTickets, scenes.language ], { ttl: 10 });
 
 bot.use(telegrafSession());
 bot.use(stage.middleware());
@@ -30,8 +28,8 @@ bot.use(middlewares.getUserLanguage);
 bot.command('finddirecttickets', botHandler.findDirectTickets);
 bot.command('setlanguage', botHandler.setLanguage);
 
-bot.action('FIND_DIRECT_TICKETS', botHandler.findDirectTickets);
-bot.action('SET_LANGUAGE', botHandler.setLanguage);
+bot.action('FIND_DIRECT_TICKETS', enter('finddirecttickets'));
+bot.action('SET_LANGUAGE', enter('setlanguage'));
 
 bot.start(botHandler.start);
 bot.help(botHandler.help);
