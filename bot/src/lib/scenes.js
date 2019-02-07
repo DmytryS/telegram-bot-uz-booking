@@ -8,6 +8,7 @@ import { User } from '../models';
 import { print } from '../utils';
 import { dateSelectEmitter, calendar } from '../app';
 
+
 const sceneLogger = logger.getLogger('Scene');
 const clearSceneState = () => (ctx) => {
     ctx.scene.state = {};
@@ -63,7 +64,7 @@ const findDirectTickets = new WizardScene(
         // clearSceneState(ctx);
         ctx.reply(messages[ ctx.session.language ].enterDepartureStation);
 
-        ctx.wizard.next();
+        return ctx.wizard.next();
     },
     async (ctx) => {
         let stations = [];
@@ -76,41 +77,38 @@ const findDirectTickets = new WizardScene(
         } catch (err) {
             sceneLogger.error('An error occured during departure station fetch', err);
             sendErrorMessage(ctx);
-            ctx.wizard.back();
+            return ctx.wizard.back();
         }
 
         if (stations.length === 0) {
             ctx.reply(messages[ ctx.session.language ].stationNotExists);
-            ctx.wizard.back();
-        } else {
-            ctx.scene.state.stations = stations;
-
-            ctx.reply(
-                messages[ ctx.session.language ].choseStation,
-                Extra.markup(
-                    Markup
-                        .keyboard(stations.map((station) => station.title))
-                        .oneTime()
-                        .resize()
-                )
-            );
+            return ctx.wizard.back();
         }
+        ctx.scene.state.stations = stations;
 
-        ctx.wizard.next();
+        ctx.reply(
+            messages[ ctx.session.language ].choseStation,
+            Extra.markup(
+                Markup
+                    .keyboard(stations.map((station) => station.title))
+                    .oneTime()
+                    .resize()
+            )
+        );
+        
+
+        return ctx.wizard.next();
     },
     (ctx) => {
         ctx.scene.state.departureStation = ctx.scene.state.stations.find((station) => station.title === ctx.message.text).value;
 
         if (!ctx.scene.state.departureStation) {
-            ctx.wizard.back();
+            return ctx.wizard.back();
         }
-
-        ctx.wizard.next();
-    },
-    (ctx) => {
+        
         ctx.reply(messages[ ctx.session.language ].enterArrivalStation);
 
-        ctx.wizard.next();
+        return ctx.wizard.next();
     },
     async (ctx) => {
         let stations = [];
@@ -147,7 +145,7 @@ const findDirectTickets = new WizardScene(
 
         ctx.wizard.next();
     },
-    (ctx) => {
+    async (ctx) => {
         ctx.scene.state.targetStation = ctx.scene.state.stations.find((station) => station.title === ctx.message.text).value;
         
         if (!ctx.scene.state.targetStation) {
@@ -155,9 +153,7 @@ const findDirectTickets = new WizardScene(
         }
 
         ctx.wizard.next();
-    },
-    async (ctx) => {
-        
+
         delete ctx.scene.state.stations;
 
         ctx.reply(
@@ -222,6 +218,7 @@ const findDirectTickets = new WizardScene(
         dateSelectEmitter.once(`dateSelect-${ctx.update.message.from.id}`, onDateSelected);
     }
 );
+
 
 export default {
     language,
