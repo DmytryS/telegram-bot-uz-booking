@@ -20,7 +20,7 @@ const trainLogo = (category) => {
  * @param {String} language language string
  */
 const printTrainsList = (trains, departureDate, language) => {
-    let responseText = messages[ language ].searchResults(trains.length, departureDate);
+    let responseText = `${messages[ language ].searchResults(trains.length, departureDate) }\n`;
     const trainTypes = trains
         .reduce((types, train) => types.findIndex((type) => type === train.category) !== -1 ? types : [ ...types, train.category ], [])
         .sort();

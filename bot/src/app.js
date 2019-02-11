@@ -18,7 +18,7 @@ calendar.setDateListener((context, date) => {
     dateSelectEmitter.emit(`dateSelect-${context.update.callback_query.from.id}`, date);
 });
 
-const stage = new Stage([ scenes.findDirectTickets, scenes.language ], { ttl: 10 });
+const stage = new Stage([ scenes.findDirectTickets, scenes.language ], { ttl: 60 });
 
 bot.use(telegrafSession());
 bot.use(stage.middleware());

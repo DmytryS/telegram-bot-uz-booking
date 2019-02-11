@@ -24,5 +24,7 @@ export default {
     searchTicketsWithInterchange: '✈️🚲 Find tickets with interchange',
     setLanguage: '🏳️ Select language',
     findTickets: '🎫 Find tickets',
-    remindMeWhenAvailable: 'Remind me, when get in stock'
+    remindMeWhenAvailable: 'Remind me, when get in stock',
+    tryAgain: 'Please, try again',
+    chooseReturn: 'Choose return ticket'
 };
