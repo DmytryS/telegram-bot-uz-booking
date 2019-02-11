@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
+import logger from './logger';
 
-const url = `${process.env.MONGO_URL}/${process.env.DB_NAME}`;
+const dbLogger = logger.getLogger('DB');
 const options = {
     useCreateIndex: true,
     useNewUrlParser: true
@@ -10,22 +11,22 @@ mongoose.Promise = Promise;
 
 mongoose.set('useFindAndModify', false);
 
-mongoose.connect(url, options);
+mongoose.connect(process.env.MONGODB_URI, options);
 
 mongoose.connection.on('connected', () => {
-    console.log('Connected to MongoDB');
+    dbLogger.info('Connected to MongoDB');
 });
 
 mongoose.connection.on('error', (error) => {
-    console.log(`Connection to MongoDB failed: ${error.message}`);
+    dbLogger.error(`Connection to MongoDB failed: ${error.message}`);
 });
 
 mongoose.connection.on('disconnected', () => {
-    console.log('Disconnected from MongoDB');
+    dbLogger.info('Disconnected from MongoDB');
 });
 
 mongoose.connection.on('close', () => {
-    console.log('MongoDB connection closed');
+    dbLogger.info('MongoDB connection closed');
 });
 
 export default mongoose;

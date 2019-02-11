@@ -1,36 +1,24 @@
 import WizardScene from 'telegraf/scenes/wizard';
-import { Extra, Markup } from 'telegraf';
+import Telegraf, { Extra, Markup } from 'telegraf';
 import moment from 'moment';
 import UzClient from 'uz-booking-client';
 import messages from './messages';
 import { logger } from '../services';
 import { User } from '../models';
+import { print } from '../utils';
 import { dateSelectEmitter, calendar } from '../app';
 
+
 const sceneLogger = logger.getLogger('Scene');
-
 const clearSceneState = () => (ctx) => {
-    ctx.scene.state = {};
+    ctx.session = {};
 };
-
-const trainLogo = (category) => {
-    switch (category) {
-        case 0:
-            return '🚂';
-        case 1:
-            return '🚆';
-        case 2:
-            return '🚈';
-        default:
-            return '💁';
-    }
-};
-const sendErrorMessage = (ctx) => ctx.reply(messages[ ctx.session.language ].errorOccured);
+const sendErrorMessage = (ctx, message) => ctx.reply(`${messages[ ctx.session.language ].errorOccured}\n${message}`);
 
 const language = new WizardScene(
     'setlanguage',
     (ctx) => {
-        ctx.scene.state.languages = {
+        ctx.session.languages = {
             '🇬🇧 English': 'en',
             '🇷🇺 Русский': 'ru',
             '🇺🇦 Українська': 'uk'
@@ -50,26 +38,25 @@ const language = new WizardScene(
             )
         );
 
-        return ctx.wizard.next();
+        ctx.wizard.next();
     },
     async (ctx) => {
-        ctx.session.language = ctx.message.text;
+        ctx.session.language = ctx.session.languages[ ctx.message.text ];
 
         await User.updateOne(
             {
                 telegramId: ctx.update.message.from.id
             },
             {
-                language: ctx.scene.state.languages[ ctx.message.text ]
+                language: ctx.session.languages[ ctx.message.text ]
             }
         );
 
-        clearSceneState(ctx);
+        // clearSceneState(ctx);
 
-        return ctx.scene.leave();
+        ctx.scene.leave();
     }
-)
-    .leave(clearSceneState());
+);
 
 const findDirectTickets = new WizardScene(
     'finddirecttickets',
@@ -90,32 +77,42 @@ const findDirectTickets = new WizardScene(
         } catch (err) {
             sceneLogger.error('An error occured during departure station fetch', err);
             sendErrorMessage(ctx);
-            ctx.wizard.back();
+            ctx.reply(messages[ ctx.session.language ].enterDepartureStation);
+
+            return;
         }
 
         if (stations.length === 0) {
-            ctx.reply();
-            ctx.wizard.back();
-        } else {
-            ctx.scene.state.stations = stations;
+            ctx.reply(messages[ ctx.session.language ].stationNotExists);
+            ctx.reply(messages[ ctx.session.language ].enterDepartureStation);
 
-            ctx.reply(
-                messages[ ctx.session.language ].choseStation,
-                Extra.markup(
-                    Markup
-                        .keyboard(stations.map((station) => station.title))
-                        .oneTime()
-                        .resize()
-                )
-            );
+            return;
         }
+        ctx.session.stations = stations;
+
+        ctx.reply(
+            messages[ ctx.session.language ].choseStation,
+            Extra.markup(
+                Markup
+                    .keyboard(stations.map((station) => station.title))
+                    .oneTime()
+                    .resize()
+            )
+        );
+        
 
         return ctx.wizard.next();
     },
     (ctx) => {
-        ctx.scene.state.departureStation = ctx.scene.state.stations.find((station) => station.title === ctx.message.text).value;
+        const departureStation = ctx.session.stations.find((station) => station.title === ctx.message.text);
 
+        if (!departureStation) {
+            ctx.reply(messages[ ctx.session.language ].choseStation);
 
+            return;
+        }
+        
+        ctx.session.departureStation = departureStation.value;
         ctx.reply(messages[ ctx.session.language ].enterArrivalStation);
 
         return ctx.wizard.next();
@@ -131,33 +128,44 @@ const findDirectTickets = new WizardScene(
         } catch (err) {
             sceneLogger.error('An error occured during target station fetch', err);
             sendErrorMessage(ctx);
+            ctx.reply(messages[ ctx.session.language ].enterArrivalStation);
 
-            ctx.wizard.back();
+            return;
         }
 
         if (stations.length === 0) {
             ctx.reply(messages[ ctx.session.language ].stationNotExists);
-            ctx.wizard.back();
-        } else {
-            ctx.scene.state.stations = stations;
+            ctx.reply(messages[ ctx.session.language ].enterArrivalStation);
 
-            ctx.reply(
-                messages[ ctx.session.language ].choseStation,
-                Extra.markup(
-                    Markup
-                        .keyboard(stations.map((station) => station.title))
-                        .oneTime()
-                        .resize()
-                )
-            );
+            return;
         }
 
+        ctx.session.stations = stations;
+
+        ctx.reply(
+            messages[ ctx.session.language ].choseStation,
+            Extra.markup(
+                Markup
+                    .keyboard(stations.map((station) => station.title))
+                    .oneTime()
+                    .resize()
+            )
+        );
 
         return ctx.wizard.next();
     },
-    (ctx) => {
-        ctx.scene.state.targetStation = ctx.scene.state.stations.find((station) => station.title === ctx.message.text).value;
-        delete ctx.scene.state.stations;
+    async (ctx) => {
+        const targetStation = ctx.session.stations.find((station) => station.title === ctx.message.text);
+
+        if (!targetStation) {
+            ctx.reply(messages[ ctx.session.language ].choseStation);
+
+            return;
+        }
+
+        ctx.session.targetStation = targetStation.value;
+
+        delete ctx.session.stations;
 
         ctx.reply(
             messages[ ctx.session.language ].choseDepartureDate,
@@ -168,7 +176,7 @@ const findDirectTickets = new WizardScene(
         );
 
         const onDateSelected = async function (date) {
-            ctx.scene.state.departureDate = date;
+            ctx.session.departureDate = date;
 
             ctx.reply(date);
 
@@ -177,84 +185,78 @@ const findDirectTickets = new WizardScene(
             try {
                 const uzClient = new UzClient(ctx.session.language);
                 const response = await uzClient.Train.find(
-                    ctx.scene.state.departureStation,
-                    ctx.scene.state.targetStation,
-                    ctx.scene.state.departureDate,
+                    ctx.session.departureStation,
+                    ctx.session.targetStation,
+                    ctx.session.departureDate,
                     '00:00'
                 );
-
+                
+                if (response.data.data && !response.data.data.list) {
+                    throw new Error(response.data.data);
+                }
+                
                 trains = response.data.data.list;
             } catch (err) {
                 sceneLogger.error('An error occured during target station fetch', err);
-                sendErrorMessage(ctx);
-
-                ctx.wizard.back();
+                sendErrorMessage(ctx, err.message);
+                
+                ctx.reply(messages[ ctx.session.language ].tryAgain);
+                
+                return ctx.scene.leave();
             }
 
             trains = trains.filter((train) => train.types.length > 0);
 
 
-            let responseText = messages[ ctx.session.language ].searchResults(trains.length, ctx.scene.state.departureDate);
-            const trainTypes = trains
-                .reduce((types, train) => types.findIndex((type) => type === train.category) !== -1 ? types : [ ...types, train.category ], [])
-                .sort();
-
-            trainTypes.forEach((type) => {
-                const trainCount = trains.filter((train) => train.category === type).length;
-
-                switch (type) {
-                    case 0:
-                        responseText += `${trainLogo(type)} ${trainCount} - ${messages[ ctx.session.language ].passenger}\n`;
-                        break;
-                    case 1:
-                        responseText += `${trainLogo(type)} ${trainCount} - ${messages[ ctx.session.language ].intercity}\n`;
-                        break;
-                    case 2:
-                        responseText += `${trainLogo(type)} ${trainCount} - ${messages[ ctx.session.language ].transformer}\n`;
-                        break;
-                    default:
-                        responseText += `${trainLogo(type)} ${trainCount} - ${messages[ ctx.session.language ].unknownType}\n`;
-                }
-            });
-
-            trains.forEach((train) => {
-                responseText += '\n〰〰〰〰〰〰〰〰\n\n';
-                responseText += `${trainLogo(train.category)} ${train.num} ${train.from.station}-${train.to.station}\n`;
-                responseText += `🕙 ${messages[ ctx.session.language ].departure} ${train.from.time}\n`;
-                responseText += `🕕 ${messages[ ctx.session.language ].arrival} ${train.to.time}\n`;
-                responseText += `⌚️ ${messages[ ctx.session.language ].inTransit} ${train.travelTime}\n\n`;
-
-                train.types.forEach((type) => {
-                    responseText += `🎫  ${type.title}: ${type.places}\n`;
-                });
-            });
-
             const inlineKeyboardButtons = [
-                [ Markup.callbackButton(messages[ ctx.session.language ].searchTicketsOnAnotherDate, 'FIND_DIRECT_TICKETS') ],
+                [ Markup.callbackButton(messages[ ctx.session.language ].searchTicketsOnAnotherDate, 'FIND_ANOTHER_DATE_TICKETS') ],
                 [ Markup.callbackButton(messages[ ctx.session.language ].searchAnotherDirectTrains, 'FIND_DIRECT_TICKETS') ],
                 [ Markup.callbackButton(messages[ ctx.session.language ].setLanguage, 'SET_LANGUAGE') ]
             ];
 
             if (trains.length === 0) {
-                inlineKeyboardButtons.push([ Markup.callbackButton(messages[ ctx.session.language ].searchTicketsWithInterchange, 'FIND_TICKETS') ]);
+                inlineKeyboardButtons.push([ Markup.callbackButton(messages[ ctx.session.language ].searchTicketsWithInterchange, 'FIND_INTERCHANGE_TICKETS') ]);
+                inlineKeyboardButtons.push([ Markup.callbackButton(messages[ ctx.session.language ].remindMeWhenAvailable, 'REMIND_ME') ]);
+            } else {
+                inlineKeyboardButtons.push([ Markup.callbackButton(messages[ ctx.session.language ].chooseReturn, 'FIND_RETURN_TICKET') ]);
             }
 
             ctx.reply(
-                responseText,
+                print.printTrainsList(
+                    trains,
+                    ctx.session.departureDate,
+                    ctx.session.language
+                ),
                 Markup.inlineKeyboard(inlineKeyboardButtons).extra()
             );
 
-            clearSceneState(ctx);
-            return ctx.scene.leave();
+            // clearSceneState(ctx);
+            // ctx.scene.leave();
+            return ctx.wizard.next();
         };
 
         dateSelectEmitter.once(`dateSelect-${ctx.update.message.from.id}`, onDateSelected);
     },
-    // (ctx) => {
+    (ctx) => {
+        switch (ctx.callbackQuery.data) {
+            case 'FIND_ANOTHER_DATE_TICKETS':
+                console.log('FIND_ANOTHER_DATE_TICKETS TODO');
+                break;
+            case 'FIND_INTERCHANGE_TICKETS':
+                console.log('FIND_INTERCHANGE_TICKETS TODO');
+                break;
+            case 'REMIND_ME':
+                console.log('REMIND_ME TODO');
+                break;
+            case 'FIND_RETURN_TICKET':
+                console.log('FIND_RETURN_TICKET TODO');
+                break;
+            default:
+                return ctx.scene.leave();
+        }
+    }
+);
 
-    // }
-)
-    .leave(clearSceneState());
 
 export default {
     language,
