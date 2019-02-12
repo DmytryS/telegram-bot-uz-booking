@@ -1,5 +1,5 @@
 import WizardScene from 'telegraf/scenes/wizard';
-import Telegraf, { Extra, Markup } from 'telegraf';
+import { Extra, Markup } from 'telegraf';
 import moment from 'moment';
 import UzClient from 'uz-booking-client';
 import messages from './messages';
@@ -8,14 +8,10 @@ import { User } from '../models';
 import { print } from '../utils';
 import { dateSelectEmitter, calendar } from '../app';
 
-
 const sceneLogger = logger.getLogger('Scene');
-const clearSceneState = () => (ctx) => {
-    ctx.session = {};
-};
 const sendErrorMessage = (ctx, message) => ctx.reply(`${messages[ ctx.session.language ].errorOccured}\n${message}`);
 
-const language = new WizardScene(
+const setLanguage = new WizardScene(
     'setlanguage',
     (ctx) => {
         ctx.session.languages = {
@@ -52,16 +48,13 @@ const language = new WizardScene(
             }
         );
 
-        // clearSceneState(ctx);
-
         ctx.scene.leave();
     }
 );
 
-const findDirectTickets = new WizardScene(
-    'finddirecttickets',
+const selectDepartureStation = new WizardScene(
+    'selectDepartureStation',
     (ctx) => {
-        clearSceneState(ctx);
         ctx.reply(messages[ ctx.session.language ].enterDepartureStation);
 
         return ctx.wizard.next();
@@ -99,7 +92,7 @@ const findDirectTickets = new WizardScene(
                     .resize()
             )
         );
-        
+
 
         return ctx.wizard.next();
     },
@@ -111,8 +104,16 @@ const findDirectTickets = new WizardScene(
 
             return;
         }
-        
+
         ctx.session.departureStation = departureStation.value;
+
+        return ctx.scene.enter('selectArrivalStation');
+    },
+);
+
+const selectArrivalStation = new WizardScene(
+    'selectArrivalStation',
+    (ctx) => {
         ctx.reply(messages[ ctx.session.language ].enterArrivalStation);
 
         return ctx.wizard.next();
@@ -154,19 +155,28 @@ const findDirectTickets = new WizardScene(
 
         return ctx.wizard.next();
     },
-    async (ctx) => {
-        const targetStation = ctx.session.stations.find((station) => station.title === ctx.message.text);
+    (ctx) => {
+        if (!ctx.session.arrivalStation) {
+            const arrivalStation = ctx.session.stations.find((station) => station.title === ctx.message.text);
 
-        if (!targetStation) {
-            ctx.reply(messages[ ctx.session.language ].choseStation);
+            if (!arrivalStation) {
+                ctx.reply(messages[ ctx.session.language ].choseStation);
 
-            return;
+                return;
+            }
+
+            ctx.session.arrivalStation = arrivalStation.value;
+
+            delete ctx.session.stations;
         }
 
-        ctx.session.targetStation = targetStation.value;
+        return ctx.scene.enter('selectDepartureDate');
+    }
+);
 
-        delete ctx.session.stations;
-
+const selectDepartureDate = new WizardScene(
+    'selectDepartureDate',
+    (ctx) => {
         ctx.reply(
             messages[ ctx.session.language ].choseDepartureDate,
             calendar
@@ -184,24 +194,40 @@ const findDirectTickets = new WizardScene(
 
             try {
                 const uzClient = new UzClient(ctx.session.language);
-                const response = await uzClient.Train.find(
-                    ctx.session.departureStation,
-                    ctx.session.targetStation,
-                    ctx.session.departureDate,
-                    '00:00'
-                );
-                
-                if (response.data.data && !response.data.data.list) {
+                let response = false;
+
+                // eslint-disable-next-line
+                switch (ctx.session.ticketSearchType) {
+                    case 'DIRECT':
+                        response = await uzClient.Train.find(
+                            ctx.session.departureStation,
+                            ctx.session.arrivalStation,
+                            ctx.session.departureDate,
+                            '00:00'
+                        );
+                        break;
+                    case 'INTERCHANGE':
+                        response = await uzClient.Train.findInterchange(
+                            ctx.session.departureStation,
+                            ctx.session.arrivalStation,
+                            ctx.session.departureDate,
+                            '00:00'
+                        );
+                        break;
+                }
+
+
+                if (!response || response.data.data && !response.data.data.list) {
                     throw new Error(response.data.data);
                 }
-                
+
                 trains = response.data.data.list;
             } catch (err) {
                 sceneLogger.error('An error occured during target station fetch', err);
                 sendErrorMessage(ctx, err.message);
-                
+
                 ctx.reply(messages[ ctx.session.language ].tryAgain);
-                
+
                 return ctx.scene.leave();
             }
 
@@ -230,35 +256,50 @@ const findDirectTickets = new WizardScene(
                 Markup.inlineKeyboard(inlineKeyboardButtons).extra()
             );
 
-            // clearSceneState(ctx);
-            // ctx.scene.leave();
             return ctx.wizard.next();
         };
 
-        dateSelectEmitter.once(`dateSelect-${ctx.update.message.from.id}`, onDateSelected);
+        const userId = (ctx.update.message && ctx.update.message.from.id) || (ctx.update.callback_query && ctx.update.callback_query.from.id);
+
+        dateSelectEmitter.once(`dateSelect-${userId}`, onDateSelected);
     },
     (ctx) => {
         switch (ctx.callbackQuery.data) {
             case 'FIND_ANOTHER_DATE_TICKETS':
-                console.log('FIND_ANOTHER_DATE_TICKETS TODO');
-                break;
+                return ctx.scene.enter('selectDepartureDate');
             case 'FIND_INTERCHANGE_TICKETS':
-                console.log('FIND_INTERCHANGE_TICKETS TODO');
+                // TODO
+                ctx.session.ticketSearchType = 'INTERCHANGE';
+                ctx.scene.enter('selectDepartureDate');
                 break;
             case 'REMIND_ME':
                 console.log('REMIND_ME TODO');
                 break;
             case 'FIND_RETURN_TICKET':
-                console.log('FIND_RETURN_TICKET TODO');
-                break;
+                // eslint-disable-next-line
+                const { departureStation } = ctx.session;
+
+                ctx.session.ticketSearchType = 'DIRECT';
+                ctx.session.departureStation = ctx.session.arrivalStation;
+                ctx.session.arrivalStation = departureStation;
+                return ctx.scene.enter('selectDepartureDate');
             default:
                 return ctx.scene.leave();
         }
     }
 );
 
+const remindWhenTicketsAvailable = new WizardScene(
+    'remindWhenTicketsAvailable',
+    (ctx) => {
+
+    }
+);
 
 export default {
-    language,
-    findDirectTickets
+    setLanguage,
+    selectDepartureStation,
+    selectArrivalStation,
+    selectDepartureDate,
+    remindWhenTicketsAvailable
 };

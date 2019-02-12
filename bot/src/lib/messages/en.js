@@ -26,5 +26,7 @@ export default {
     findTickets: '🎫 Find tickets',
     remindMeWhenAvailable: 'Remind me, when get in stock',
     tryAgain: 'Please, try again',
-    chooseReturn: 'Choose return ticket'
+    chooseReturn: 'Choose return ticket',
+    howManyTicketsYouNeed: 'How many tickets do you need?',
+    sayWhenAvailable: 'Ok, I will remind you when tickets become available again'
 };
