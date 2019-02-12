@@ -292,6 +292,11 @@ const selectDepartureDate = new WizardScene(
 const remindWhenTicketsAvailable = new WizardScene(
     'remindWhenTicketsAvailable',
     (ctx) => {
+        ctx.reply(messages[ ctx.session.language ].howManyTicketsYouNeed);
+
+        return ctx.wizard.next();
+    },
+    async (ctx) => {
 
     }
 );
