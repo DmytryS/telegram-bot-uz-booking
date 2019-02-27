@@ -230,6 +230,7 @@ const findDirectTickets = new WizardScene(
                 Markup.inlineKeyboard(inlineKeyboardButtons).extra()
             );
 
+            
             // clearSceneState(ctx);
             // ctx.scene.leave();
             return ctx.wizard.next();
