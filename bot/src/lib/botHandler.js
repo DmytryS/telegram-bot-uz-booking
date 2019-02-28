@@ -34,11 +34,20 @@ const help = (ctx) => ctx.reply(messages.en.help);
 
 const setLanguage = (ctx) => ctx.scene.enter('setlanguage');
 
-const findDirectTickets = (ctx) => ctx.scene.enter('finddirecttickets');
+const findDirectTickets = (ctx) => {
+    ctx.session.ticketSearchType = 'DIRECT';
+    ctx.scene.enter('selectDepartureStation');
+};
+
+const findInterchangeTickets = (ctx) => {
+    ctx.session.ticketSearchType = 'INTERCHANGE';
+    ctx.scene.enter('selectDepartureStation');
+}
 
 export default {
     start,
     help,
     setLanguage,
-    findDirectTickets
+    findDirectTickets,
+    findInterchangeTickets
 };

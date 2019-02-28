@@ -18,7 +18,7 @@ calendar.setDateListener((context, date) => {
     dateSelectEmitter.emit(`dateSelect-${context.update.callback_query.from.id}`, date);
 });
 
-const stage = new Stage([ scenes.findDirectTickets, scenes.language ], { ttl: 60 });
+const stage = new Stage([ scenes.selectDepartureStation, scenes.selectArrivalStation, scenes.selectDepartureDate, scenes.setLanguage, scenes.remindWhenTicketsAvailable ], { ttl: 60 });
 
 bot.use(telegrafSession());
 bot.use(stage.middleware());
@@ -26,6 +26,7 @@ bot.use(middlewares.getUserLanguage);
 
 
 bot.command('finddirecttickets', botHandler.findDirectTickets);
+bot.command('findinterchangetickets', botHandler.findInterchangeTickets);
 bot.command('setlanguage', botHandler.setLanguage);
 
 bot.action('FIND_DIRECT_TICKETS', enter('finddirecttickets'));
