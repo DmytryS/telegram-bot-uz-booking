@@ -1,10 +1,13 @@
 sudo: required
 language: node_js
+node_js:
+  - "8"
 services:
   - docker
 branches:
   only:
     - master
+install: npm install -- prefix ./bot
 before_script:
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
   - curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
@@ -19,8 +22,6 @@ before_script:
   - kubectl config set-cluster $KUBE_CLUSTER_NAME --server=$KUBE_CLUSTER_IP --certificate-authority=${HOME}/.kube/ca.pem
   - kubectl config set-context $KUBE_CLUSTER_CONTEXT --user=$KUBE_CLUSTER_USERNAME --namespace=default --cluster=$KUBE_CLUSTER_NAME
   - kubectl config use-context $KUBE_CLUSTER_CONTEXT
-  - npm install -- prefix ./bot
-
 script:
   - npm run lint --prefix ./bot
   - export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo ${TRAVIS_COMMIT::8} ; fi`
