@@ -1,17 +1,17 @@
 import { User } from '../models';
 
 const getUserLanguage = async (ctx, next) => {
-    if (!ctx.session.language) {
-        const telegramId = ctx.from.id;
-        const user = await User.findOne({ telegramId });
-        const language = user && user.language || 'en';
+  if (!ctx.session.language) {
+    const telegramId = ctx.from.id;
+    const user = await User.findOne({ telegramId });
+    const language = (user && user.language) || 'en';
 
-        ctx.session.language = language;
-    }
+    ctx.session.language = language;
+  }
 
-    await next();
+  await next();
 };
 
 export default {
-    getUserLanguage
+  getUserLanguage
 };

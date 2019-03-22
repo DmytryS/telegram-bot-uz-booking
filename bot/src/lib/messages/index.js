@@ -3,7 +3,7 @@ import ru from './ru';
 import uk from './uk';
 
 export default {
-    en,
-    ru,
-    uk
+  en,
+  ru,
+  uk
 };
