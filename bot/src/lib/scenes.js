@@ -122,6 +122,8 @@ const selectDepartureStation = new WizardScene(
 
     ctx.session.departureStation = departureStation.value;
 
+    delete ctx.session.stations;
+
     ctx.scene.enter('selectArrivalStation');
   }
 );
@@ -170,21 +172,19 @@ const selectArrivalStation = new WizardScene(
     ctx.wizard.next();
   },
   ctx => {
-    if (!ctx.session.arrivalStation) {
-      const arrivalStation = ctx.session.stations.find(
-        station => station.title === ctx.message.text
-      );
+    const arrivalStation = ctx.session.stations.find(
+      station => station.title === ctx.message.text
+    );
 
-      if (!arrivalStation) {
-        ctx.reply(messages[ctx.session.language].choseStation);
+    if (!arrivalStation) {
+      ctx.reply(messages[ctx.session.language].choseStation);
 
-        return;
-      }
-
-      ctx.session.arrivalStation = arrivalStation.value;
-
-      delete ctx.session.stations;
+      return;
     }
+
+    ctx.session.arrivalStation = arrivalStation.value;
+
+    delete ctx.session.stations;
 
     ctx.scene.enter('selectDepartureDate');
   }
@@ -314,6 +314,10 @@ const selectDepartureDate = new WizardScene(
     dateSelectEmitter.once(`dateSelect-${userId}`, onDateSelected);
   },
   ctx => {
+    if (!ctx || !ctx.callbackQuery || !ctx.callbackQuery.data) {
+      ctx.scene.leave();
+    }
+
     switch (ctx.callbackQuery.data) {
       case 'FIND_ANOTHER_DATE_TICKETS':
         ctx.scene.enter('selectDepartureDate');
