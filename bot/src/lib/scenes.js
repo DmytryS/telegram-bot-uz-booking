@@ -3,7 +3,7 @@ import { Extra, Markup } from 'telegraf';
 import moment from 'moment';
 import UzClient from 'uz-booking-client';
 import messages from './messages';
-import { logger } from '../services';
+import { logger, queue } from '../services';
 import { User, Task } from '../models';
 import { print } from '../utils';
 import { dateSelectEmitter, calendar } from '../app';
@@ -363,13 +363,31 @@ const remindWhenTicketsAvailable = new WizardScene(
   async ctx => {
     const amountOfTickets = parseInt(ctx.message.text, 10);
 
-    await new Task({
+    if (!amountOfTickets) {
+      sendErrorMessage(ctx);
+      ctx.reply(messages[ctx.session.language].howManyTicketsYouNeed);
+    }
+
+    const task = await new Task({
+      chatId: ctx.from.id,
       userId: ctx.session,
       departureStationId: ctx.session.departureStation,
       arrivalStation: ctx.session.arrivalStation,
       departureDate: ctx.session.departureDate,
       amountOfTickets
     }).save();
+
+    await queue.publish(
+      process.env.TICKET_WATCHER_QUEUE,
+      'fanout',
+      JSON.stringify({
+        taskId: task._id.toString()
+      })
+    );
+
+    ctx.reply(messages[ctx.session.language].sayWhenAvailable);
+
+    ctx.scene.enter('initialScene');
   }
 );
 

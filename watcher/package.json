@@ -8,7 +8,7 @@
     "url": "https://github.com/DmytryS/uz-booking-bot.git"
   },
   "scripts": {
-    "start": "NODE_ENV=production nodemon --exec babel-node ./src/app.js",
+    "start": "NODE_ENV=production babel-node ./src/app.js",
     "dev": "NODE_ENV=development nodemon --exec babel-node ./src/app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -16,9 +16,10 @@
   "license": "MIT",
   "dependencies": {
     "dotenv": "^6.2.0",
+    "lodash": "^4.17.11",
     "log4js": "^3.0.6",
     "mongoose": "^5.4.4",
-    "uz-booking-client": "^1.0.3"
+    "uz-booking-client": "^1.0.5"
   },
   "devDependencies": {
     "@babel/cli": "^7.2.3",

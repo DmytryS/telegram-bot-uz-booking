@@ -1,41 +1,51 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const statusTypes = {
-    values: [ 'ACTIVE', 'COMPLETED', 'FAILED' ],
-    message: 'Value must be either of \'ACTIVE\', \'COMPLETED\', \'FAILED\''
+  values: ["ACTIVE", "COMPLETED", "FAILED"],
+  message: "Value must be either of 'ACTIVE', 'COMPLETED', 'FAILED'"
 };
 
-const Schema = mongoose.Schema;
+const { Schema } = mongoose;
 const { ObjectId } = Schema;
-const userSchema = new Schema({
+const taskSchema = new Schema(
+  {
+    chatId: {
+      type: String,
+      required: true
+    },
     userId: {
-        type: ObjectId,
-        required: true,
-        ref: 'User'
+      type: ObjectId,
+      required: true,
+      ref: "User"
     },
     departureStationId: {
-        type: String,
-        required: true
+      type: String,
+      required: true
     },
-    targetStationId: {
-        type: String,
-        required: true
+    arrivalStationId: {
+      type: String,
+      required: true
     },
     departureDate: {
-        type: Date,
-        required: true
+      type: Date,
+      required: true
+    },
+    amountOfTickets: {
+      type: Number,
+      required: true
     },
     staus: {
-        type: String,
-        enum: statusTypes,
-        required: true,
-        default: 'ACTIVE'
+      type: String,
+      enum: statusTypes,
+      required: true,
+      default: "ACTIVE"
     }
-},
-{
+  },
+  {
     timestamps: true
-});
+  }
+);
 
-delete mongoose.connection.models.User;
+delete mongoose.connection.models.Task;
 
-export default mongoose.model('Task', userSchema);
+export default mongoose.model("Task", taskSchema);
