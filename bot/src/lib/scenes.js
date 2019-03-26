@@ -4,7 +4,7 @@ import moment from 'moment';
 import UzClient from 'uz-booking-client';
 import messages from './messages';
 import { logger, queue } from '../services';
-import { User, Task } from '../models';
+import { User, Job } from '../models';
 import { print } from '../utils';
 import { dateSelectEmitter, calendar } from '../app';
 
@@ -335,7 +335,7 @@ const selectDepartureDate = new WizardScene(
         ctx.scene.enter('selectDepartureDate');
         break;
       case 'REMIND_ME_WHEN_AVAILABLE':
-        // TODO
+        ctx.scene.enter('remindWhenTicketsAvailable');
         break;
       case 'FIND_RETURN_TICKET':
         // eslint-disable-next-line
@@ -368,20 +368,21 @@ const remindWhenTicketsAvailable = new WizardScene(
       ctx.reply(messages[ctx.session.language].howManyTicketsYouNeed);
     }
 
-    const task = await new Task({
+    const user = await User.findOne({ telegramId: ctx.from.id });
+    const job = await new Job({
       chatId: ctx.from.id,
-      userId: ctx.session,
+      user: user._id.toString(),
       departureStationId: ctx.session.departureStation,
-      arrivalStation: ctx.session.arrivalStation,
+      arrivalStationId: ctx.session.arrivalStation,
       departureDate: ctx.session.departureDate,
       amountOfTickets
     }).save();
 
     await queue.publish(
-      process.env.TICKET_WATCHER_QUEUE,
+      process.env.WORKER_QUEUE,
       'fanout',
       JSON.stringify({
-        taskId: task._id.toString()
+        jobId: job._id.toString()
       })
     );
 

@@ -7,7 +7,7 @@ const statusTypes = {
 
 const { Schema } = mongoose;
 const { ObjectId } = Schema;
-const taskSchema = new Schema(
+const jobSchema = new Schema(
   {
     chatId: {
       type: String,
@@ -46,6 +46,6 @@ const taskSchema = new Schema(
   }
 );
 
-delete mongoose.connection.models.Task;
+delete mongoose.connection.models.Job;
 
-export default mongoose.model('Task', taskSchema);
+export default mongoose.model('Job', jobSchema);

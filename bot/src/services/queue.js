@@ -1,5 +1,5 @@
 import amqp from 'amqplib';
-import _ from 'lodash';
+// import _ from 'lodash';
 import logger from './logger';
 import EventEmitter from 'events';
 
@@ -24,7 +24,11 @@ export class Queue {
           setTimeout(resolve, process.env.RABBIT_RECONNECT_INTERVAL)
         );
       }
+      this.logger.info('Trying to connect RabbitMQ');
     }
+
+    this.logger.info('Connected to RabbitMQ');
+
     return conn;
   }
 

@@ -9,7 +9,7 @@
   },
   "scripts": {
     "start": "NODE_ENV=production babel-node ./src/app.js",
-    "dev": "NODE_ENV=development nodemon --exec babel-node ./src/app.js",
+    "dev": "NODE_ENV=development nodemon --watch src --exec babel-node ./src/app.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "prettier --list-different 'src/**/*.js' && eslint 'src/**/*.js'",
     "lint:fix": "prettier --write 'src/**/*.js' && eslint --fix 'src/**/*.js'"

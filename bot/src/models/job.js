@@ -1,22 +1,22 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 const statusTypes = {
-  values: ["ACTIVE", "COMPLETED", "FAILED"],
+  values: ['ACTIVE', 'COMPLETED', 'FAILED'],
   message: "Value must be either of 'ACTIVE', 'COMPLETED', 'FAILED'"
 };
 
 const { Schema } = mongoose;
 const { ObjectId } = Schema;
-const taskSchema = new Schema(
+const jobSchema = new Schema(
   {
     chatId: {
       type: String,
       required: true
     },
-    userId: {
+    user: {
       type: ObjectId,
       required: true,
-      ref: "User"
+      ref: 'User'
     },
     departureStationId: {
       type: String,
@@ -38,7 +38,7 @@ const taskSchema = new Schema(
       type: String,
       enum: statusTypes,
       required: true,
-      default: "ACTIVE"
+      default: 'ACTIVE'
     }
   },
   {
@@ -46,6 +46,6 @@ const taskSchema = new Schema(
   }
 );
 
-delete mongoose.connection.models.Task;
+delete mongoose.connection.models.Job;
 
-export default mongoose.model("Task", taskSchema);
+export default mongoose.model('Job', jobSchema);
