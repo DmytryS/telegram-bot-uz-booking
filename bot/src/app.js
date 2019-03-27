@@ -5,13 +5,17 @@ import telegrafSession from 'telegraf/session';
 import Calendar from 'telegraf-calendar-telegram';
 import EventEmitter from 'events';
 import { logger } from './services';
-import { botHandler, scenes, middlewares } from './lib';
+import { botHandler, scenes, middlewares, JobHandler } from './lib';
 
 const appLogger = logger.getLogger('App');
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
 export const dateSelectEmitter = new EventEmitter();
 export const calendar = new Calendar(bot);
+
+const jobHandler = new JobHandler(bot);
+
+jobHandler.subscribeToQueue(process.env.NOTIFICATIONS_QUEUE);
 
 calendar.setDateListener((context, date) => {
   dateSelectEmitter.emit(
@@ -39,11 +43,16 @@ bot.use(middlewares.getUserLanguage);
 bot.command('finddirecttickets', botHandler.findDirectTickets);
 bot.command('findinterchangetickets', botHandler.findInterchangeTickets);
 bot.command('setlanguage', botHandler.setLanguage);
+bot.command('getwatchers', botHandler.getWatchers);
+bot.command('stop', botHandler.stop);
 bot.command('help', botHandler.help);
 
 bot.action('FIND_DIRECT_TICKETS', botHandler.findDirectTickets);
 bot.action('SET_LANGUAGE', botHandler.setLanguage);
+bot.action('GET_WATCHERS', botHandler.getWatchers);
 bot.action('HELP', botHandler.help);
+
+bot.hears(/\/stop_watch_(.*)/, botHandler.stopWatch);
 
 bot.start(botHandler.start);
 bot.help(botHandler.help);

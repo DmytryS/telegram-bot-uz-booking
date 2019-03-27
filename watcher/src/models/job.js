@@ -1,8 +1,9 @@
 import mongoose from 'mongoose';
 
 const statusTypes = {
-  values: ['ACTIVE', 'COMPLETED', 'FAILED'],
-  message: "Value must be either of 'ACTIVE', 'COMPLETED', 'FAILED'"
+  values: ['ACTIVE', 'COMPLETED', 'EXPIRED', 'CANCELED'],
+  message:
+    "Value must be either of 'ACTIVE', 'COMPLETED', 'EXPIRED', 'CANCELED'"
 };
 
 const { Schema } = mongoose;
@@ -13,7 +14,7 @@ const jobSchema = new Schema(
       type: String,
       required: true
     },
-    userId: {
+    user: {
       type: ObjectId,
       required: true,
       ref: 'User'
@@ -22,7 +23,15 @@ const jobSchema = new Schema(
       type: String,
       required: true
     },
+    departureStationName: {
+      type: String,
+      required: true
+    },
     arrivalStationId: {
+      type: String,
+      required: true
+    },
+    arrivalStationName: {
       type: String,
       required: true
     },
@@ -34,7 +43,7 @@ const jobSchema = new Schema(
       type: Number,
       required: true
     },
-    staus: {
+    status: {
       type: String,
       enum: statusTypes,
       required: true,
@@ -45,6 +54,25 @@ const jobSchema = new Schema(
     timestamps: true
   }
 );
+
+class Job {
+  async markAsSucceded() {
+    this.staus = 'COMPLETED';
+    return this.save();
+  }
+
+  async markAsExpired() {
+    this.staus = 'EXPIRED';
+    return this.save();
+  }
+
+  async markAsCanceled() {
+    this.staus = 'CANCELED';
+    return this.save();
+  }
+}
+
+jobSchema.loadClass(Job);
 
 delete mongoose.connection.models.Job;
 

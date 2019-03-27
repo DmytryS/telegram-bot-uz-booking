@@ -121,6 +121,7 @@ const selectDepartureStation = new WizardScene(
     }
 
     ctx.session.departureStation = departureStation.value;
+    ctx.session.departureStationName = ctx.message.text;
 
     delete ctx.session.stations;
 
@@ -183,6 +184,7 @@ const selectArrivalStation = new WizardScene(
     }
 
     ctx.session.arrivalStation = arrivalStation.value;
+    ctx.session.arrivalStationName = ctx.message.text;
 
     delete ctx.session.stations;
 
@@ -316,39 +318,39 @@ const selectDepartureDate = new WizardScene(
   ctx => {
     if (!ctx || !ctx.callbackQuery || !ctx.callbackQuery.data) {
       ctx.scene.leave();
-    }
+    } else {
+      switch (ctx.callbackQuery.data) {
+        case 'FIND_ANOTHER_DATE_TICKETS':
+          ctx.scene.enter('selectDepartureDate');
+          break;
+        case 'FIND_DIRECT_TICKETS':
+          ctx.session.ticketSearchType = 'DIRECT';
+          ctx.scene.enter('selectDepartureStation');
+          break;
+        case 'SET_LANGUAGE':
+          ctx.scene.enter('setlanguage');
+          break;
+        case 'FIND_INTERCHANGE_TICKETS':
+          // TODO
+          ctx.session.ticketSearchType = 'INTERCHANGE';
+          ctx.scene.enter('selectDepartureDate');
+          break;
+        case 'REMIND_ME_WHEN_AVAILABLE':
+          ctx.scene.enter('remindWhenTicketsAvailable');
+          break;
+        case 'FIND_RETURN_TICKET':
+          // eslint-disable-next-line
+          const { departureStation } = ctx.session;
 
-    switch (ctx.callbackQuery.data) {
-      case 'FIND_ANOTHER_DATE_TICKETS':
-        ctx.scene.enter('selectDepartureDate');
-        break;
-      case 'FIND_DIRECT_TICKETS':
-        ctx.session.ticketSearchType = 'DIRECT';
-        ctx.scene.enter('selectDepartureStation');
-        break;
-      case 'SET_LANGUAGE':
-        ctx.scene.enter('setlanguage');
-        break;
-      case 'FIND_INTERCHANGE_TICKETS':
-        // TODO
-        ctx.session.ticketSearchType = 'INTERCHANGE';
-        ctx.scene.enter('selectDepartureDate');
-        break;
-      case 'REMIND_ME_WHEN_AVAILABLE':
-        ctx.scene.enter('remindWhenTicketsAvailable');
-        break;
-      case 'FIND_RETURN_TICKET':
-        // eslint-disable-next-line
-        const { departureStation } = ctx.session;
-
-        ctx.session.ticketSearchType = 'DIRECT';
-        ctx.session.departureStation = ctx.session.arrivalStation;
-        ctx.session.arrivalStation = departureStation;
-        ctx.scene.enter('selectDepartureDate');
-        break;
-      default:
-        ctx.scene.leave();
-        break;
+          ctx.session.ticketSearchType = 'DIRECT';
+          ctx.session.departureStation = ctx.session.arrivalStation;
+          ctx.session.arrivalStation = departureStation;
+          ctx.scene.enter('selectDepartureDate');
+          break;
+        default:
+          ctx.scene.leave();
+          break;
+      }
     }
   }
 );
@@ -371,9 +373,11 @@ const remindWhenTicketsAvailable = new WizardScene(
     const user = await User.findOne({ telegramId: ctx.from.id });
     const job = await new Job({
       chatId: ctx.from.id,
-      user: user._id.toString(),
+      user: user._id,
       departureStationId: ctx.session.departureStation,
+      departureStationName: ctx.session.departureStationName,
       arrivalStationId: ctx.session.arrivalStation,
+      arrivalStationName: ctx.session.arrivalStationName,
       departureDate: ctx.session.departureDate,
       amountOfTickets
     }).save();

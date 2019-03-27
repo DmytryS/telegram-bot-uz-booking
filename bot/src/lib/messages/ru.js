@@ -1,5 +1,6 @@
 export default {
   greetingMessage: firstName => `Чем могу помочь, ${firstName}?`,
+  byeMessage: 'Пока)',
   enterDepartureStation: 'Введите станцию отправления',
   enterArrivalStation: 'Введите станцию прибытия',
   errorOccured: '❌ Произошла ошибка',
@@ -20,6 +21,8 @@ export default {
 /finddirecttickets - найти прямые билеты
 /findinterchangetickets - найти билеты с пересадкой
 /setlanguage - установить язык
+/getwatchers - список направлений, за которыми я слежу
+/stop - остановить бота
 /help - помощь`,
   searchResults: (trainsCount, departureDate) =>
     `Нашел ${trainsCount} поездов на ${departureDate}`,
@@ -34,5 +37,12 @@ export default {
   howManyTicketsYouNeed: 'Сколько билетов вам нужно?',
   sayWhenAvailable:
     'Хорошо, Я напомню вам, когда билеты снова появятся в наличии',
-  letsTryAgain: 'Ну что, попробуем еще раз)'
+  letsTryAgain: 'Ну что, попробуем еще раз)',
+  watcherFoundTicket: 'Как и обещал)',
+  watcherDidnotFoundTicket:
+    'Прошу прощения, я не смог найти билет для вас (((((',
+  ticketWatchers: watchersCount =>
+    `На даний момент я слежу за ${watchersCount} направлениями`,
+  jobStopped: (departureStation, arrivalStation) =>
+    `Наблюдение за билетами на ${departureStation} - ${arrivalStation} остановлено`
 };

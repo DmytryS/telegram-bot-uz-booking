@@ -1,5 +1,4 @@
 import amqp from 'amqplib';
-// import _ from 'lodash';
 import logger from './logger';
 import EventEmitter from 'events';
 
@@ -7,8 +6,6 @@ export class Queue {
   constructor() {
     this.logger = logger.getLogger('QUEUE');
     this.connection = false;
-
-    this.connect();
   }
 
   async connect() {

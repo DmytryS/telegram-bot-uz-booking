@@ -1,3 +1,4 @@
+import moment from 'moment';
 import { messages } from '../lib';
 
 const trainLogo = category => {
@@ -79,6 +80,27 @@ const printTrainsList = (trains, departureDate, language) => {
   return responseText;
 };
 
+/**
+ * Prints tickets watch jobs list
+ * @param {Array<Train>} watchers array of watch jobs
+ * @param {String} language language string
+ * @returns {String} formatted response
+ */
+const printWatchersList = (watchers, language) => {
+  let responseText = `${messages[language].ticketWatchers(watchers.length)}\n`;
+
+  watchers.forEach(watcher => {
+    responseText += `⚪️ ${watcher.departureStationName} - ${
+      watcher.arrivalStationName
+    }  ${moment(watcher.departureDate).format(
+      'YYYY-MM-DD'
+    )} /stop_watch_${watcher._id.toString()} \n`;
+  });
+
+  return responseText;
+};
+
 export default {
-  printTrainsList
+  printTrainsList,
+  printWatchersList
 };
