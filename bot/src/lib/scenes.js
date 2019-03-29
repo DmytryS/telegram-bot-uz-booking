@@ -3,7 +3,7 @@ import { Extra, Markup } from 'telegraf';
 import moment from 'moment';
 import UzClient from 'uz-booking-client';
 import messages from './messages';
-import { logger, queue } from '../services';
+import { logger } from '../services';
 import { User, Job } from '../models';
 import { print } from '../utils';
 import { dateSelectEmitter, calendar } from '../app';

@@ -17,7 +17,9 @@ const pushToQueue = async () => {
     };
 
     if (
-      moment(job.departureDate, 'YYYY-MM-DD').diff(moment(), 'hours', true) < 3
+      moment(job.departureDate, 'YYYY-MM-DD')
+        .add(24, 'hours')
+        .diff(moment(), 'hours', true) < 3
     ) {
       // eslint-disable-next-line
       await job.markAsExpired();
