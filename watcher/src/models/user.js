@@ -25,7 +25,12 @@ const userSchema = new Schema(
       type: String,
       enum: languages,
       required: true,
-      default: 'en'
+      default: 'ru'
+    },
+    botEnabled: {
+      type: Boolean,
+      required: true,
+      default: true
     }
   },
   {

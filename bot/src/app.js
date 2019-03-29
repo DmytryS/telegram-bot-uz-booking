@@ -31,7 +31,8 @@ const stage = new Stage(
     scenes.selectArrivalStation,
     scenes.selectDepartureDate,
     scenes.setLanguage,
-    scenes.remindWhenTicketsAvailable
+    scenes.selectSeatType,
+    scenes.enterNumberOfTickets
   ],
   { ttl: 60 }
 );

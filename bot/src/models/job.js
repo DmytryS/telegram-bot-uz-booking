@@ -6,6 +6,19 @@ const statusTypes = {
     "Value must be either of 'ACTIVE', 'COMPLETED', 'EXPIRED', 'CANCELED'"
 };
 
+const ticketTypes = {
+  values: [
+    'BERTH',
+    'DE_LUXE',
+    'COMPARTMENT',
+    'SEATING_1ST_CLASS',
+    'SEATING_2ND_CLASS',
+    'SEATING_3D_CLASS'
+  ],
+  message:
+    "Value must be either of 'BERTH', 'DE_LUXE', 'COMPARTMENT', 'SEATING_1ST_CLASS', 'SEATING_2ND_CLASS' ,'SEATING_3D_CLASS'"
+};
+
 const { Schema } = mongoose;
 const { ObjectId } = Schema;
 const jobSchema = new Schema(
@@ -43,6 +56,13 @@ const jobSchema = new Schema(
       type: Number,
       required: true
     },
+    ticketTypes: [
+      {
+        type: String,
+        enum: ticketTypes,
+        required: true
+      }
+    ],
     status: {
       type: String,
       enum: statusTypes,
