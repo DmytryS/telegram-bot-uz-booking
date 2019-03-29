@@ -3,8 +3,8 @@ import { Extra, Markup } from 'telegraf';
 import moment from 'moment';
 import UzClient from 'uz-booking-client';
 import messages from './messages';
-import { logger } from '../services';
-import { User, Task } from '../models';
+import { logger, queue } from '../services';
+import { User, Job } from '../models';
 import { print } from '../utils';
 import { dateSelectEmitter, calendar } from '../app';
 
@@ -121,6 +121,7 @@ const selectDepartureStation = new WizardScene(
     }
 
     ctx.session.departureStation = departureStation.value;
+    ctx.session.departureStationName = ctx.message.text;
 
     delete ctx.session.stations;
 
@@ -183,6 +184,7 @@ const selectArrivalStation = new WizardScene(
     }
 
     ctx.session.arrivalStation = arrivalStation.value;
+    ctx.session.arrivalStationName = ctx.message.text;
 
     delete ctx.session.stations;
 
@@ -270,6 +272,12 @@ const selectDepartureDate = new WizardScene(
             messages[ctx.session.language].setLanguage,
             'SET_LANGUAGE'
           )
+        ],
+        [
+          Markup.callbackButton(
+            messages[ctx.session.language].remindMeWhenAvailable,
+            'REMIND_ME_WHEN_AVAILABLE'
+          )
         ]
       ];
 
@@ -278,12 +286,6 @@ const selectDepartureDate = new WizardScene(
           Markup.callbackButton(
             messages[ctx.session.language].searchTicketsWithInterchange,
             'FIND_INTERCHANGE_TICKETS'
-          )
-        ]);
-        inlineKeyboardButtons.push([
-          Markup.callbackButton(
-            messages[ctx.session.language].remindMeWhenAvailable,
-            'REMIND_ME_WHEN_AVAILABLE'
           )
         ]);
       } else {
@@ -316,45 +318,130 @@ const selectDepartureDate = new WizardScene(
   ctx => {
     if (!ctx || !ctx.callbackQuery || !ctx.callbackQuery.data) {
       ctx.scene.leave();
-    }
+    } else {
+      switch (ctx.callbackQuery.data) {
+        case 'FIND_ANOTHER_DATE_TICKETS':
+          ctx.scene.enter('selectDepartureDate');
+          break;
+        case 'FIND_DIRECT_TICKETS':
+          ctx.session.ticketSearchType = 'DIRECT';
+          ctx.scene.enter('selectDepartureStation');
+          break;
+        case 'SET_LANGUAGE':
+          ctx.scene.enter('setlanguage');
+          break;
+        case 'FIND_INTERCHANGE_TICKETS':
+          // TODO
+          ctx.session.ticketSearchType = 'INTERCHANGE';
+          ctx.scene.enter('selectDepartureDate');
+          break;
+        case 'REMIND_ME_WHEN_AVAILABLE':
+          ctx.scene.enter('selectSeatType');
+          break;
+        case 'FIND_RETURN_TICKET':
+          // eslint-disable-next-line
+          const { departureStation } = ctx.session;
 
-    switch (ctx.callbackQuery.data) {
-      case 'FIND_ANOTHER_DATE_TICKETS':
-        ctx.scene.enter('selectDepartureDate');
-        break;
-      case 'FIND_DIRECT_TICKETS':
-        ctx.session.ticketSearchType = 'DIRECT';
-        ctx.scene.enter('selectDepartureStation');
-        break;
-      case 'SET_LANGUAGE':
-        ctx.scene.enter('setlanguage');
-        break;
-      case 'FIND_INTERCHANGE_TICKETS':
-        // TODO
-        ctx.session.ticketSearchType = 'INTERCHANGE';
-        ctx.scene.enter('selectDepartureDate');
-        break;
-      case 'REMIND_ME_WHEN_AVAILABLE':
-        // TODO
-        break;
-      case 'FIND_RETURN_TICKET':
-        // eslint-disable-next-line
-        const { departureStation } = ctx.session;
-
-        ctx.session.ticketSearchType = 'DIRECT';
-        ctx.session.departureStation = ctx.session.arrivalStation;
-        ctx.session.arrivalStation = departureStation;
-        ctx.scene.enter('selectDepartureDate');
-        break;
-      default:
-        ctx.scene.leave();
-        break;
+          ctx.session.ticketSearchType = 'DIRECT';
+          ctx.session.departureStation = ctx.session.arrivalStation;
+          ctx.session.arrivalStation = departureStation;
+          ctx.scene.enter('selectDepartureDate');
+          break;
+        default:
+          ctx.scene.leave();
+          break;
+      }
     }
   }
 );
 
-const remindWhenTicketsAvailable = new WizardScene(
-  'remindWhenTicketsAvailable',
+const selectSeatType = new WizardScene('selectSeatType', ctx => {
+  ctx.session.ticketTypes = ctx.session.ticketTypes || [];
+
+  if (ctx.callbackQuery && ctx.callbackQuery.data === 'NEXT') {
+    if (!ctx.session.ticketTypes || ctx.session.ticketTypes.length === 0) {
+      ctx.reply(messages[ctx.session.language].selectAtLeastOneSeatType);
+    } else {
+      ctx.scene.enter('enterNumberOfTickets');
+    }
+  } else {
+    if (!ctx.callbackQuery || !ctx.callbackQuery.data) {
+      ctx.session.ticketTypes = [];
+    }
+    if (
+      ctx.callbackQuery &&
+      ctx.callbackQuery.data &&
+      ctx.callbackQuery.data !== 'REMIND_ME_WHEN_AVAILABLE'
+    ) {
+      const seatTypeIndex = ctx.session.ticketTypes.indexOf(
+        ctx.callbackQuery.data
+      );
+
+      if (seatTypeIndex > -1) {
+        ctx.session.ticketTypes.splice(seatTypeIndex, 1);
+      } else {
+        ctx.session.ticketTypes.push(ctx.callbackQuery.data);
+      }
+    }
+
+    const buttonList = Markup.inlineKeyboard([
+      [
+        Markup.callbackButton(
+          `${ctx.session.ticketTypes.indexOf('COMPARTMENT') > -1 ? '✅ ' : ''}${
+            messages[ctx.session.language].compartment
+          }`,
+          'COMPARTMENT'
+        ),
+        Markup.callbackButton(
+          `${ctx.session.ticketTypes.indexOf('BERTH') > -1 ? '✅ ' : ''}${
+            messages[ctx.session.language].berth
+          }`,
+          'BERTH'
+        ),
+        Markup.callbackButton(
+          `${ctx.session.ticketTypes.indexOf('DE_LUXE') > -1 ? '✅ ' : ''}${
+            messages[ctx.session.language].deLuxe
+          }`,
+          'DE_LUXE'
+        )
+      ],
+      [
+        Markup.callbackButton(
+          `${
+            ctx.session.ticketTypes.indexOf('SEATING_1ST_CLASS') > -1
+              ? '✅ '
+              : ''
+          }${messages[ctx.session.language].seating1stClass}`,
+          'SEATING_1ST_CLASS'
+        )
+      ],
+      [
+        Markup.callbackButton(
+          `${
+            ctx.session.ticketTypes.indexOf('SEATING_2ND_CLASS') > -1
+              ? '✅ '
+              : ''
+          }${messages[ctx.session.language].seating2ndClass}`,
+          'SEATING_2ND_CLASS'
+        )
+      ],
+      [
+        Markup.callbackButton(
+          `${
+            ctx.session.ticketTypes.indexOf('SEATING_3D_CLASS') > -1 ? '✅' : ''
+          }${messages[ctx.session.language].seating3dClass}`,
+          'SEATING_3D_CLASS'
+        )
+      ],
+      [Markup.callbackButton(messages[ctx.session.language].next, 'NEXT')]
+    ]).extra();
+
+    ctx.reply(messages[ctx.session.language].selectWagonType, buttonList);
+  }
+});
+
+const enterNumberOfTickets = new WizardScene(
+  'enterNumberOfTickets',
   ctx => {
     ctx.reply(messages[ctx.session.language].howManyTicketsYouNeed);
 
@@ -363,13 +450,36 @@ const remindWhenTicketsAvailable = new WizardScene(
   async ctx => {
     const amountOfTickets = parseInt(ctx.message.text, 10);
 
-    await new Task({
-      userId: ctx.session,
+    if (!amountOfTickets) {
+      sendErrorMessage(ctx);
+      ctx.reply(messages[ctx.session.language].howManyTicketsYouNeed);
+    }
+
+    const user = await User.findOne({ telegramId: ctx.from.id });
+
+    await new Job({
+      chatId: ctx.from.id,
+      user: user._id,
       departureStationId: ctx.session.departureStation,
-      arrivalStation: ctx.session.arrivalStation,
+      departureStationName: ctx.session.departureStationName,
+      arrivalStationId: ctx.session.arrivalStation,
+      arrivalStationName: ctx.session.arrivalStationName,
       departureDate: ctx.session.departureDate,
-      amountOfTickets
+      amountOfTickets,
+      ticketTypes: ctx.session.ticketTypes
     }).save();
+
+    // await queue.publish(
+    //   process.env.WORKER_QUEUE,
+    //   'fanout',
+    //   JSON.stringify({
+    //     jobId: job._id.toString()
+    //   })
+    // );
+
+    ctx.reply(messages[ctx.session.language].sayWhenAvailable);
+
+    ctx.scene.enter('initialScene');
   }
 );
 
@@ -379,5 +489,6 @@ export default {
   selectDepartureStation,
   selectArrivalStation,
   selectDepartureDate,
-  remindWhenTicketsAvailable
+  selectSeatType,
+  enterNumberOfTickets
 };

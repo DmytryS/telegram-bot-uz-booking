@@ -1,5 +1,6 @@
 export default {
   greetingMessage: firstName => `Чим можу допомогти, ${firstName}?`,
+  byeMessage: 'Допобачення)',
   enterDepartureStation: 'Введiть станцiю вiдправлення',
   enterArrivalStation: 'Введiть станцiю прибуття',
   errorOccured: '❌ Відбулася помилка',
@@ -9,6 +10,15 @@ export default {
   departure: 'відправлення',
   arrival: 'прибуття',
   inTransit: 'в дорозі',
+  berth: 'Плацкарт',
+  deLuxe: 'Люкс',
+  compartment: 'Купе',
+  seating1stClass: 'Сидячий першого класу',
+  seating2ndClass: 'Сидячий другого класу',
+  seating3dClass: 'Сидячий третього класу',
+  selectAtLeastOneSeatType: 'Выберите хотябы один тип',
+  next: '➡️ Далi',
+  selectWagonType: 'Оберiть тип вагону',
   passenger: 'пасажирські',
   intercity: 'швидкісні Интерсити+',
   transformer: 'трансформери',
@@ -20,6 +30,8 @@ export default {
 /finddirecttickets - знайти прямі квитки
 /findinterchangetickets - знайти квитки з пересадкою
 /setlanguage - встановити мову
+/getwatchers - список напрямків, за якими я стежу
+/stop - зупинити бота
 /help - допомога`,
   searchResults: (trainsCount, departureDate) =>
     `Знайшов ${trainsCount} поїздів на ${departureDate}`,
@@ -34,5 +46,11 @@ export default {
   howManyTicketsYouNeed: 'Скільки квитків потрібно?',
   sayWhenAvailable:
     "Добре, Я нагадаю вам, коли квитки знов з'являться в наявності",
-  letsTryAgain: 'Ну що, давайте спробуємо знову)'
+  letsTryAgain: 'Ну що, давайте спробуємо знову)',
+  watcherFoundTicket: 'Знайшов квитки',
+  watcherDidnotFoundTicket: 'Мені дуже шкода, Я не змiг знайти квиток для вас',
+  ticketWatchers: watchersCount =>
+    `На даний момент я стежу за ${watchersCount} напрямками`,
+  jobStopped: (departureStation, arrivalStation) =>
+    `Спостереження за квитками на ${departureStation} - ${arrivalStation} припинено`
 };

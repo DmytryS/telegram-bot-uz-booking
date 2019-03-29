@@ -19,9 +19,7 @@ const categories = {
 
 if (process.env.NODE_ENV !== '') {
   // production
-  appenders.console = {
-    type: 'console'
-  };
+  appenders.console = { type: 'console' };
   categories.default.appenders.push('console');
   categories.default.level = 'debug';
 }

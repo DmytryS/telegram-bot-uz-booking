@@ -1,26 +1,49 @@
 version: "3"
-
 services:
-  telegram-bot:
+  mongo:
+    image: "mongo:latest"
+    ports:
+      - "27017:27017"
+  rabbitmq:
+    image: rabbitmq:3.7-management-alpine
+    hostname: rabbitmq
+    restart: always
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+  bot:
     build:
       context: .
       dockerfile: bot/Dockerfile
-    environment:
-      - NODE_ENV=production
-      - BOT_TOKEN=paste-telegram-token
-
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    env_file:
+      - ./bot/.env
+    volumes:
+      - ./bot/src:/usr/src/app/src:cached
   watcher:
     build:
       context: .
-      dockerfile: uz/Dockerfile
-    environment:
-      - NODE_ENV=production
-  mongo:
-      image: "mongo:latest"
-      ports:
-        - 27017:27017
-    rabbitmq:
-      image: "rabbitmq:management"
-      ports:
-        - "5672:5672"
-        - "15672:15672"
+      dockerfile: watcher/Dockerfile
+    restart: on-failure
+    depends_on:
+      - bot
+    env_file:
+      - ./watcher/.env
+    volumes:
+      - ./watcher/src:/usr/src/app/src:cached
+  planner:
+    build:
+      context: .
+      dockerfile: planner/Dockerfile
+    restart: on-failure
+    depends_on:
+      - watcher
+    env_file:
+      - ./planner/.env
+    volumes:
+      - ./planner/src:/usr/src/app/src:cached

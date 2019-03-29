@@ -1,5 +1,6 @@
 export default {
   greetingMessage: firstName => `How can I help you, ${firstName} ?`,
+  byeMessage: 'See you later)',
   enterDepartureStation: 'Enter departure station',
   enterArrivalStation: 'Enter arrival station',
   errorOccured: '❌ Error occured',
@@ -9,6 +10,15 @@ export default {
   departure: 'departure',
   arrival: 'arrival',
   inTransit: 'in transit',
+  berth: 'Berth / 3-cl. sleeper',
+  deLuxe: 'De Luxe / 1-cl. sleeper',
+  compartment: 'Compartment / 2-cl. sleeper',
+  seating1stClass: 'Seating first class',
+  seating2ndClass: 'Seating second class',
+  seating3dClass: 'Seating third class',
+  selectAtLeastOneSeatType: 'Виберіть принаймні один тип сидіння',
+  next: '➡️ Next️',
+  selectWagonType: 'Select wagon type',
   passenger: 'passenger',
   intercity: 'Intercity+',
   transformer: 'transformers',
@@ -20,6 +30,8 @@ export default {
 /finddirecttickets - find train tickets
 /findinterchangetickets - find interchage train tickets
 /setlanguage - set language
+/getwatchers - get ticket watchers list
+/stop - stop bot
 /help - help`,
   searchResults: (trainsCount, departureDate) =>
     `Found ${trainsCount} trains on ${departureDate}`,
@@ -33,5 +45,12 @@ export default {
   chooseReturn: '🔙 Choose return ticket',
   howManyTicketsYouNeed: 'How many tickets do you need?',
   sayWhenAvailable: 'Ok, I will remind you when tickets become available again',
-  letsTryAgain: 'So, lets try again)'
+  letsTryAgain: 'So, lets try again)',
+  watcherFoundTicket: 'Tickets now are available. Hurry up!',
+  watcherDidnotFoundTicket: 'I`m so sorry, I didn`t find ticket for you',
+  ticketWatchers: watchersCount =>
+    `Currently I'm looking after ${watchersCount} directions`,
+  jobStopped: (departureStation, arrivalStation, reason) =>
+    `Looking after tickets ${departureStation} - ${arrivalStation} stopped ${reason ||
+      ''}`
 };

@@ -1,33 +1,46 @@
 {
-  "name": "ticket_watcher_microservice",
+  "name": "ticket-watcher-service",
   "version": "1.0.0",
-  "description": "ticket_watcher_microservice",
+  "description": "Watcher service",
   "main": "app.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/DmytryS/uz-booking-bot.git"
   },
   "scripts": {
-    "start": "NODE_ENV=production nodemon --exec babel-node ./src/app.js",
-    "dev": "NODE_ENV=development nodemon --exec babel-node ./src/app.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "NODE_ENV=production babel-node ./src/app.js",
+    "dev": "NODE_ENV=development nodemon --watch src --exec babel-node ./src/app.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "prettier --list-different 'src/**/*.js' && eslint 'src/**/*.js'",
+    "lint:fix": "prettier --write 'src/**/*.js' && eslint --fix 'src/**/*.js'"
   },
   "author": "Dmytry Shvaika",
   "license": "MIT",
   "dependencies": {
+    "amqplib": "^0.5.3",
     "dotenv": "^6.2.0",
+    "lodash": "^4.17.11",
     "log4js": "^3.0.6",
+    "moment": "^2.24.0",
     "mongoose": "^5.4.4",
-    "uz-booking-client": "^1.0.3"
+    "underscore": "^1.9.1",
+    "uz-booking-client": "^1.0.5"
   },
   "devDependencies": {
     "@babel/cli": "^7.2.3",
     "@babel/core": "^7.2.2",
     "@babel/node": "^7.2.2",
     "@babel/preset-env": "^7.2.3",
-    "eslint": "^5.11.0",
+    "babel-eslint": "^10.0.1",
+    "eslint": "^5.15.3",
     "eslint-config-airbnb-base": "^13.1.0",
-    "eslint-plugin-import": "^2.14.0",
-    "nodemon": "^1.18.9"
+    "eslint-config-prettier": "4.1.0",
+    "eslint-plugin-import": "^2.16.0",
+    "eslint-plugin-prettier": "^3.0.1",
+    "nodemon": "^1.18.10",
+    "prettier": "1.16.4"
+  },
+  "prettier": {
+    "singleQuote": true
   }
 }

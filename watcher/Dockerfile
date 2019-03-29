@@ -1,16 +1,12 @@
-FROM node:8-alpine
+FROM node:8-alpine AS base
+WORKDIR /usr/src/app
+COPY package.json package.json
+COPY . .
 
-RUN mkdir /app
-WORKDIR /app
+FROM base AS dependencies
+RUN npm install
 
-COPY package.json .
-
-ENV NODE_ENV=production
-
-RUN npm install --production
-
-COPY moleculer.config.js service.js ./
-
-EXPOSE 4445
-EXPOSE 9229
-
+FROM base AS release
+COPY --from=dependencies /usr/src/app/node_modules ./node_modules
+RUN rm -f package-lock.json
+CMD ["npm", "start"]
