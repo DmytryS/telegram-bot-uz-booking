@@ -52,6 +52,7 @@ export default {
     'Прошу прощения, я не смог найти билет для вас (((((',
   ticketWatchers: watchersCount =>
     `На даний момент я слежу за ${watchersCount} направлениями`,
-  jobStopped: (departureStation, arrivalStation) =>
-    `Наблюдение за билетами на ${departureStation} - ${arrivalStation} остановлено`
+  jobStopped: (departureStation, arrivalStation, reason) =>
+    `Наблюдение за билетами на ${departureStation} - ${arrivalStation} остановлено ${reason ||
+      ''}`
 };

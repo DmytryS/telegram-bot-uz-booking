@@ -23,36 +23,50 @@ class App {
 
       subscribeEmmitter.on('data', async message => {
         this.logger.info(`RECEIVED DATA`, message);
-        let notification = {};
         const { jobId } = JSON.parse(message);
         const job = await Job.findById(jobId).populate('user');
+        let notification = { jobId };
 
-        if (job) {
-          const uzClient = new UzClient(job.user.language);
-
-          const response = await uzClient.Train.find(
-            job.departureStationId,
-            job.arrivalStationId,
-            moment(job.departureDate).format('YYYY-MM-DD'),
-            '00:00'
-          );
-
-          if (!response || (response.data.data && !response.data.data.list)) {
-            throw new Error(response.data.data);
-          }
-
-          const trains = response.data.data.list.filter(
-            train => train.types.length > 0
-          );
-
-          if (trains.length > 0) {
-            await queue.produce(
-              process.env.NOTIFICATIONS_QUEUE,
-              JSON.stringify(notification),
-              true,
+        if (job && job.isActive()) {
+          if (
+            moment().diff(
+              moment(job.departureDate, 'YYYY-MM-DD'),
+              'hours',
               true
+            ) < 3
+          ) {
+            await job.markAsExpired();
+
+            notification.type = 'EXPIRATION';
+          } else {
+            const uzClient = new UzClient(job.user.language);
+
+            const response = await uzClient.Train.find(
+              job.departureStationId,
+              job.arrivalStationId,
+              moment(job.departureDate).format('YYYY-MM-DD'),
+              '00:00'
             );
+
+            if (!response || (response.data.data && !response.data.data.list)) {
+              throw new Error(response.data.data);
+            }
+
+            const trains = response.data.data.list.filter(
+              train => train.types.length > 0
+            );
+
+            if (trains.length > 0) {
+              notification.type = 'FOUND';
+            }
           }
+
+          await queue.produce(
+            process.env.NOTIFICATIONS_QUEUE,
+            JSON.stringify(notification),
+            true,
+            true
+          );
         }
       });
 

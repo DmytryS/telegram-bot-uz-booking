@@ -90,6 +90,10 @@ class Job {
     this.status = 'CANCELED';
     return this.save();
   }
+
+  isActive() {
+    return this.status === 'ACTIVE';
+  }
 }
 
 jobSchema.loadClass(Job);

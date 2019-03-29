@@ -50,6 +50,7 @@ export default {
   watcherDidnotFoundTicket: 'I`m so sorry, I didn`t find ticket for you',
   ticketWatchers: watchersCount =>
     `Currently I'm looking after ${watchersCount} directions`,
-  jobStopped: (departureStation, arrivalStation) =>
-    `Looking after tickets ${departureStation} - ${arrivalStation} stopped`
+  jobStopped: (departureStation, arrivalStation, reason) =>
+    `Looking after tickets ${departureStation} - ${arrivalStation} stopped ${reason ||
+      ''}`
 };
