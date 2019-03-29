@@ -1,5 +1,5 @@
 import WizardScene from 'telegraf/scenes/wizard';
-import telegram, { Extra, Markup } from 'telegraf';
+import { Extra, Markup } from 'telegraf';
 import moment from 'moment';
 import UzClient from 'uz-booking-client';
 import messages from './messages';
@@ -456,7 +456,8 @@ const enterNumberOfTickets = new WizardScene(
     }
 
     const user = await User.findOne({ telegramId: ctx.from.id });
-    const job = await new Job({
+
+    await new Job({
       chatId: ctx.from.id,
       user: user._id,
       departureStationId: ctx.session.departureStation,
@@ -468,13 +469,13 @@ const enterNumberOfTickets = new WizardScene(
       ticketTypes: ctx.session.ticketTypes
     }).save();
 
-    await queue.publish(
-      process.env.WORKER_QUEUE,
-      'fanout',
-      JSON.stringify({
-        jobId: job._id.toString()
-      })
-    );
+    // await queue.publish(
+    //   process.env.WORKER_QUEUE,
+    //   'fanout',
+    //   JSON.stringify({
+    //     jobId: job._id.toString()
+    //   })
+    // );
 
     ctx.reply(messages[ctx.session.language].sayWhenAvailable);
 

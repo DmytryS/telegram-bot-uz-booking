@@ -10,12 +10,12 @@ export default {
   departure: 'отправление',
   arrival: 'прибытие',
   inTransit: 'в пути',
+  berth: 'Плацкарт',
+  deLuxe: 'Люкс',
+  compartment: 'Купе',
   seating1stClass: 'Сидячий первого класса',
   seating2ndClass: 'Сидячий второго класса',
   seating3dClass: 'Сидячий третьего класса',
-  compartment: 'Купе',
-  berth: 'Плацкарт',
-  deLuxe: 'Люкс',
   selectAtLeastOneSeatType: 'Выберите хотябы один тип',
   next: '➡️ Далее',
   selectWagonType: 'Выберите тип вагона',
@@ -47,7 +47,7 @@ export default {
   sayWhenAvailable:
     'Хорошо, Я напомню вам, когда билеты снова появятся в наличии',
   letsTryAgain: 'Ну что, попробуем еще раз)',
-  watcherFoundTicket: 'Как и обещал)',
+  watcherFoundTicket: 'Нашел билеты',
   watcherDidnotFoundTicket:
     'Прошу прощения, я не смог найти билет для вас (((((',
   ticketWatchers: watchersCount =>

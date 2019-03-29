@@ -58,7 +58,7 @@ export default class JobsHandler {
             }
             break;
           default:
-            this.logger.error(`Unexpected message ${message}`);
+            this.logger.error(`Unexpected data ${data}`);
             break;
         }
 

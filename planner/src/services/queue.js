@@ -26,7 +26,7 @@ export class Queue {
 
     this.logger.info('Connected to RabbitMQ');
 
-    return true;
+    return conn;
   }
 
   async produce(queue, message, durable = false, persistent = false) {

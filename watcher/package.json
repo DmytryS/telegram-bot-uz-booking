@@ -1,7 +1,7 @@
 {
-  "name": "ticket_watcher_microservice",
+  "name": "ticket-watcher-service",
   "version": "1.0.0",
-  "description": "ticket_watcher_microservice",
+  "description": "Watcher service",
   "main": "app.js",
   "repository": {
     "type": "git",
@@ -23,6 +23,7 @@
     "log4js": "^3.0.6",
     "moment": "^2.24.0",
     "mongoose": "^5.4.4",
+    "underscore": "^1.9.1",
     "uz-booking-client": "^1.0.5"
   },
   "devDependencies": {
