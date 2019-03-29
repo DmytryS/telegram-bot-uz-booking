@@ -27,5 +27,13 @@ script:
   - export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo ${TRAVIS_COMMIT::8} ; fi`
   - docker build -t $DOCKER_BOT_REPO:$TAG ./bot/
   - docker push $DOCKER_BOT_REPO:$TAG
+  - docker build -t $DOCKER_PLANER_REPO:$TAG ./planner/
+  - docker push $DOCKER_PLANER_REPO:$TAG
+  - docker build -t $DOCKER_WATCHER_REPO:$TAG ./watcher/
+  - docker push $DOCKER_WATCHER_REPO:$TAG
   - kubectl --namespace=$KUBE_NAMESPACE delete pod $KUBE_BOT_APP_NAME --cascade=true --ignore-not-found=true
-  - kubectl --namespace=$KUBE_NAMESPACE run --generator=run-pod/v1 --image=$DOCKER_BOT_REPO:$TAG $KUBE_BOT_APP_NAME --env="BOT_TOKEN=${BOT_TOKEN}" --env="MONGODB_URI=${MONGODB_URI}"
+  - kubectl --namespace=$KUBE_NAMESPACE run --generator=run-pod/v1 --image=$DOCKER_BOT_REPO:$TAG $KUBE_BOT_APP_NAME --env="BOT_TOKEN=${BOT_TOKEN}" --env="MONGODB_URI=${MONGODB_URI}" --env="RABBIT_MQ_URI=${RABBIT_MQ_URI}" --env="RABBIT_RECONNECT_INTERVAL=${RABBIT_RECONNECT_INTERVAL}" --env="NOTIFICATIONS_QUEUE=${NOTIFICATIONS_QUEUE}" --env="WORKER_QUEUE=${WORKER_QUEUE}"
+    - kubectl --namespace=$KUBE_NAMESPACE delete pod $KUBE_PLANNER_APP_NAME --cascade=true --ignore-not-found=true
+  - kubectl --namespace=$KUBE_NAMESPACE run --generator=run-pod/v1 --image=$DOCKER_PLANER_REPO:$TAG $KUBE_PLANNER_APP_NAME --env="MONGODB_URI=${MONGODB_URI}" --env="RABBIT_MQ_URI=${RABBIT_MQ_URI}" --env="RABBIT_RECONNECT_INTERVAL=${RABBIT_RECONNECT_INTERVAL}" --env="NOTIFICATIONS_QUEUE=${NOTIFICATIONS_QUEUE}" --env="WORKER_QUEUE=${WORKER_QUEUE}" --env="JOBS_CHECK_INTERVAL=${JOBS_CHECK_INTERVAL}"
+    - kubectl --namespace=$KUBE_NAMESPACE delete pod $KUBE_WATCHER_APP_NAME --cascade=true --ignore-not-found=true
+  - kubectl --namespace=$KUBE_NAMESPACE run --generator=run-pod/v1 --image=$DOCKER_WATCHER_REPO:$TAG $KUBE_WATCHER_APP_NAME --env="MONGODB_URI=${MONGODB_URI}" --env="RABBIT_MQ_URI=${RABBIT_MQ_URI}" --env="RABBIT_RECONNECT_INTERVAL=${RABBIT_RECONNECT_INTERVAL}" --env="NOTIFICATIONS_QUEUE=${NOTIFICATIONS_QUEUE}" --env="WORKER_QUEUE=${WORKER_QUEUE}"
