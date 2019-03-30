@@ -87,6 +87,8 @@ const subscribeJobs = async () => {
 
             await job.markAsSucceded();
 
+            watcherLogger.info(`Found tickets for job with id ${jobId}`);
+
             await queue.publish(
               process.env.NOTIFICATIONS_QUEUE,
               'fanout',

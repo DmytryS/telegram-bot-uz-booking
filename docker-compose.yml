@@ -20,10 +20,10 @@ services:
       - "15672:15672"
   bot:
     build:
-      context: .
-      dockerfile: bot/Dockerfile
+      context: ./bot
     restart: always
     depends_on:
+      - mongodb
       - rabbitmq
     env_file:
       - ./bot/.env
@@ -31,8 +31,7 @@ services:
       - ./bot/src:/usr/src/app/src:cached
   watcher:
     build:
-      context: .
-      dockerfile: watcher/Dockerfile
+      context: ./watcher
     restart: always
     depends_on:
       - bot
@@ -42,8 +41,7 @@ services:
       - ./watcher/src:/usr/src/app/src:cached
   planner:
     build:
-      context: .
-      dockerfile: planner/Dockerfile
+      context: ./planner
     restart: always
     depends_on:
       - watcher

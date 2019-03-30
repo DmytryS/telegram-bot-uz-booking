@@ -7,7 +7,7 @@ import EventEmitter from 'events';
 import { logger } from './services';
 import { botHandler, scenes, middlewares, JobHandler } from './lib';
 
-const appLogger = logger.getLogger('App');
+const appLogger = logger.getLogger('BotApp');
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
 export const dateSelectEmitter = new EventEmitter();

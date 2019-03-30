@@ -35,7 +35,7 @@ export class Queue {
     await channel.assertQueue(queue, { durable });
     await channel.sendToQueue(queue, Buffer.from(message), { persistent });
 
-    this.logger.info('Message produced: ', queue, message);
+    // this.logger.info('Message produced: ', queue, message);
   }
 
   async consume(queue, isNoAck = false, durable = false, prefetch = null) {
@@ -63,6 +63,7 @@ export class Queue {
         { noAck: isNoAck }
       );
     } catch (error) {
+      this.logger.error(`Consume error occured: ${error}`);
       consumeEmitter.emit('error', error);
     }
     return consumeEmitter;
@@ -76,7 +77,7 @@ export class Queue {
     });
     await channel.publish(exchangeName, '', Buffer.from(message));
 
-    this.logger.info('Message published: ', exchangeName, message);
+    // this.logger.info('Message published: ', exchangeName, message);
   }
 
   async subscribe(exchangeName, exchangeType) {
@@ -103,6 +104,7 @@ export class Queue {
         { noAck: true }
       );
     } catch (error) {
+      this.logger.error(`Subscribe error occured: ${error}`);
       consumeEmitter.emit('error', error);
     }
     return consumeEmitter;
