@@ -18,7 +18,6 @@ export default class JobsHandler {
       const subscribeEmmitter = await queue.subscribe(queueName, 'fanout');
 
       subscribeEmmitter.on('data', async data => {
-        this.logger.info(`RECEIVED DATA`, data);
         let { jobId, type } = JSON.parse(data);
 
         const job = await Job.findById(jobId).populate('user');

@@ -50,8 +50,8 @@ const subscribeJobs = async () => {
       'fanout'
     );
 
-    subscribeEmmitter.on('data', async message => {
-      const { jobId } = JSON.parse(message);
+    subscribeEmmitter.on('data', async data => {
+      const { jobId } = JSON.parse(data);
       const job = await Job.findById(jobId).populate('user');
       let notification = { jobId };
 
