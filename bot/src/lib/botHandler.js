@@ -12,7 +12,8 @@ const start = async ctx => {
       telegramId: ctx.update.message.from.id,
       firstName: ctx.update.message.from.first_name,
       lastName: ctx.update.message.from.last_name,
-      userName: ctx.update.message.from.username
+      userName: ctx.update.message.from.username,
+      botEnabled: true
     },
     {
       upsert: true,
@@ -65,8 +66,12 @@ const getWatchers = async ctx => {
   ctx.reply(print.printWatchersList(jobs, ctx.session.language));
 };
 
-const stop = ctx => {
-  // TODO
+const stop = async ctx => {
+  const telegramId = ctx.from.id;
+  const user = await User.findOne({ telegramId });
+
+  await Job.markAsCanceledForUser(user._id.toString());
+  await user.stopBot();
 
   ctx.reply(messages[ctx.session.language].byeMessage);
 };

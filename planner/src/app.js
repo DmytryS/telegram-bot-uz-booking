@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import moment from 'moment';
+import moment from 'moment-timezone';
 import { logger, queue } from './services';
 import { Job } from './models';
 
@@ -18,8 +18,10 @@ const pushToQueue = async () => {
 
     if (
       moment(job.departureDate, 'YYYY-MM-DD')
-        .add(24, 'hours')
-        .diff(moment(), 'hours', true) < 3
+        .tz('Europe/Kiev')
+        .add(1, 'day')
+        .set('hours', 0)
+        .diff(moment().tz('Europe/Kiev'), 'hours', true) < 3
     ) {
       // eslint-disable-next-line
       await job.markAsExpired();

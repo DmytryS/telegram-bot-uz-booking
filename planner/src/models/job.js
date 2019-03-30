@@ -78,21 +78,36 @@ const jobSchema = new Schema(
 class Job {
   async markAsSucceded() {
     this.status = 'COMPLETED';
+
     return this.save();
   }
 
   async markAsExpired() {
     this.status = 'EXPIRED';
+
     return this.save();
   }
 
   async markAsCanceled() {
     this.status = 'CANCELED';
+
     return this.save();
   }
 
   isActive() {
     return this.status === 'ACTIVE';
+  }
+
+  static async markAsCanceledForUser(userId) {
+    return this.update(
+      {
+        'user._id': ObjectId(userId),
+        status: 'ACTIVE'
+      },
+      {
+        status: 'CANCELED'
+      }
+    );
   }
 }
 

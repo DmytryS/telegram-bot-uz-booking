@@ -38,6 +38,16 @@ const userSchema = new Schema(
   }
 );
 
+class User {
+  async stopBot() {
+    this.botEnabled = false;
+
+    return this.save();
+  }
+}
+
+userSchema.loadClass(User);
+
 delete mongoose.connection.models.User;
 
 export default mongoose.model('User', userSchema);
