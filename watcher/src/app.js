@@ -34,15 +34,6 @@ const seatNames = {
   }
 };
 
-const intervalId = setInterval(() => {
-  queue.connect().then(isConnected => {
-    if (isConnected) {
-      clearInterval(intervalId);
-      watcherLogger.info('Watcher is up');
-    }
-  });
-}, process.env.RABBIT_RECONNECT_INTERVAL);
-
 const subscribeJobs = async () => {
   try {
     const subscribeEmmitter = await queue.subscribe(
@@ -105,4 +96,12 @@ const subscribeJobs = async () => {
   }
 };
 
-subscribeJobs();
+const intervalId = setInterval(() => {
+  queue.connect().then(isConnected => {
+    if (isConnected) {
+      clearInterval(intervalId);
+      subscribeJobs();
+      watcherLogger.info('Watcher is up');
+    }
+  });
+}, process.env.RABBIT_RECONNECT_INTERVAL);
