@@ -52,5 +52,6 @@ export default {
   ticketWatchers: watchersCount =>
     `На даний момент я стежу за ${watchersCount} напрямками`,
   jobStopped: (departureStation, arrivalStation) =>
-    `Спостереження за квитками на ${departureStation} - ${arrivalStation} припинено`
+    `Спостереження за квитками на ${departureStation} - ${arrivalStation} припинено`,
+  alreadyWatching: 'Я вже спостерігаю за цим напрямком'
 };

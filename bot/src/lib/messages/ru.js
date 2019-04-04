@@ -54,5 +54,6 @@ export default {
     `На даний момент я слежу за ${watchersCount} направлениями`,
   jobStopped: (departureStation, arrivalStation, reason) =>
     `Наблюдение за билетами на ${departureStation} - ${arrivalStation} остановлено ${reason ||
-      ''}`
+      ''}`,
+  alreadyWatching: 'Я уже слежу за этим направлением'
 };

@@ -10,7 +10,7 @@ import { dateSelectEmitter, calendar } from '../app';
 
 const sceneLogger = logger.getLogger('Scene');
 const sendErrorMessage = (ctx, message) =>
-  ctx.reply(`${messages[ctx.session.language].errorOccured}\n${message}`);
+  ctx.reply(`${messages[ctx.session.language].errorOccured}\n${message || ''}`);
 
 const initialScene = new WizardScene('initialScene', ctx => {
   ctx.reply(
@@ -84,7 +84,10 @@ const selectDepartureStation = new WizardScene(
       stations = response.data;
     } catch (err) {
       sceneLogger.error('An error occured during departure station fetch', err);
-      sendErrorMessage(ctx);
+      sendErrorMessage(
+        ctx,
+        err.response.status === 503 ? 'Service unavailable' : err.message
+      );
       ctx.reply(messages[ctx.session.language].enterDepartureStation);
 
       return;
@@ -146,7 +149,11 @@ const selectArrivalStation = new WizardScene(
       stations = response.data;
     } catch (err) {
       sceneLogger.error('An error occured during target station fetch', err);
-      sendErrorMessage(ctx);
+
+      sendErrorMessage(
+        ctx,
+        err.response.status === 503 ? 'Service unavailable' : err.message
+      );
       ctx.reply(messages[ctx.session.language].enterArrivalStation);
 
       return;
@@ -245,7 +252,10 @@ const selectDepartureDate = new WizardScene(
         trains = response.data.data.list;
       } catch (err) {
         sceneLogger.error('An error occured during target station fetch', err);
-        sendErrorMessage(ctx, err.message);
+        sendErrorMessage(
+          ctx,
+          err.response.status === 503 ? 'Service unavailable' : err.message
+        );
 
         ctx.reply(messages[ctx.session.language].tryAgain);
 
@@ -457,27 +467,41 @@ const enterNumberOfTickets = new WizardScene(
 
     const user = await User.findOne({ telegramId: ctx.from.id });
 
-    await new Job({
+    const existingJob = await Job.findOne({
       chatId: ctx.from.id,
       user: user._id,
       departureStationId: ctx.session.departureStation,
-      departureStationName: ctx.session.departureStationName,
       arrivalStationId: ctx.session.arrivalStation,
-      arrivalStationName: ctx.session.arrivalStationName,
       departureDate: ctx.session.departureDate,
       amountOfTickets,
       ticketTypes: ctx.session.ticketTypes
-    }).save();
+    });
 
-    // await queue.publish(
-    //   process.env.WORKER_QUEUE,
-    //   'fanout',
-    //   JSON.stringify({
-    //     jobId: job._id.toString()
-    //   })
-    // );
+    if (existingJob) {
+      ctx.reply(messages[ctx.session.language].alreadyWatching);
+    } else {
+      await new Job({
+        chatId: ctx.from.id,
+        user: user._id,
+        departureStationId: ctx.session.departureStation,
+        departureStationName: ctx.session.departureStationName,
+        arrivalStationId: ctx.session.arrivalStation,
+        arrivalStationName: ctx.session.arrivalStationName,
+        departureDate: ctx.session.departureDate,
+        amountOfTickets,
+        ticketTypes: ctx.session.ticketTypes
+      }).save();
 
-    ctx.reply(messages[ctx.session.language].sayWhenAvailable);
+      // await queue.publish(
+      //   process.env.WORKER_QUEUE,
+      //   'fanout',
+      //   JSON.stringify({
+      //     jobId: job._id.toString()
+      //   })
+      // );
+
+      ctx.reply(messages[ctx.session.language].sayWhenAvailable);
+    }
 
     ctx.scene.enter('initialScene');
   }

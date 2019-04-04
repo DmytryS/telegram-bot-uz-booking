@@ -54,13 +54,10 @@ const findInterchangeTickets = ctx => {
 const setLanguage = ctx => ctx.scene.enter('setlanguage');
 
 const getWatchers = async ctx => {
+  const user = await User.findOne({ telegramId: ctx.from.id });
   const jobs = await Job.find({
-    status: 'ACTIVE'
-  }).populate({
-    path: 'user',
-    match: {
-      telegramId: ctx.from.id
-    }
+    status: 'ACTIVE',
+    user: user._id
   });
 
   ctx.reply(print.printWatchersList(jobs, ctx.session.language));
