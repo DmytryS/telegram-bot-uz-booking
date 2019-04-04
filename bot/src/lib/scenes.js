@@ -86,9 +86,12 @@ const selectDepartureStation = new WizardScene(
       sceneLogger.error('An error occured during departure station fetch', err);
       sendErrorMessage(
         ctx,
-        err.response.status === 503 ? 'Service unavailable' : err.message
+        err.response && err.response.status === 503
+          ? 'Service unavailable'
+          : err.message
       );
-      ctx.reply(messages[ctx.session.language].enterDepartureStation);
+      // ctx.reply(messages[ctx.session.language].enterDepartureStation);
+      ctx.scene.enter('initialScene');
 
       return;
     }
@@ -148,13 +151,16 @@ const selectArrivalStation = new WizardScene(
 
       stations = response.data;
     } catch (err) {
-      sceneLogger.error('An error occured during target station fetch', err);
+      sceneLogger.error('An error occured during arrival station fetch', err);
 
       sendErrorMessage(
         ctx,
-        err.response.status === 503 ? 'Service unavailable' : err.message
+        err.response && err.response.status === 503
+          ? 'Service unavailable'
+          : err.message
       );
-      ctx.reply(messages[ctx.session.language].enterArrivalStation);
+      // ctx.reply(messages[ctx.session.language].enterArrivalStation);
+      ctx.scene.enter('initialScene');
 
       return;
     }
@@ -214,7 +220,8 @@ const selectDepartureDate = new WizardScene(
         .getCalendar()
     );
 
-    const onDateSelected = async function onDateSelected(date) {
+    // eslint-disable-next-line
+    const onDateSelected = async date => {
       ctx.session.departureDate = date;
 
       ctx.reply(date);
@@ -249,74 +256,75 @@ const selectDepartureDate = new WizardScene(
           throw new Error(response.data.data);
         }
 
-        trains = response.data.data.list;
+        trains = response.data.data.list.filter(
+          train => train.types.length > 0
+        );
+
+        const inlineKeyboardButtons = [
+          [
+            Markup.callbackButton(
+              messages[ctx.session.language].searchTicketsOnAnotherDate,
+              'FIND_ANOTHER_DATE_TICKETS'
+            )
+          ],
+          [
+            Markup.callbackButton(
+              messages[ctx.session.language].searchAnotherDirectTrains,
+              'FIND_DIRECT_TICKETS'
+            )
+          ],
+          [
+            Markup.callbackButton(
+              messages[ctx.session.language].setLanguage,
+              'SET_LANGUAGE'
+            )
+          ],
+          [
+            Markup.callbackButton(
+              messages[ctx.session.language].remindMeWhenAvailable,
+              'REMIND_ME_WHEN_AVAILABLE'
+            )
+          ]
+        ];
+
+        if (trains.length === 0) {
+          inlineKeyboardButtons.push([
+            Markup.callbackButton(
+              messages[ctx.session.language].searchTicketsWithInterchange,
+              'FIND_INTERCHANGE_TICKETS'
+            )
+          ]);
+        } else {
+          inlineKeyboardButtons.push([
+            Markup.callbackButton(
+              messages[ctx.session.language].chooseReturn,
+              'FIND_RETURN_TICKET'
+            )
+          ]);
+        }
+
+        ctx.reply(
+          print.printTrainsList(
+            trains,
+            ctx.session.departureDate,
+            ctx.session.language
+          ),
+          Markup.inlineKeyboard(inlineKeyboardButtons).extra()
+        );
+
+        return ctx.wizard.next();
       } catch (err) {
-        sceneLogger.error('An error occured during target station fetch', err);
+        sceneLogger.error('An error occured during trains fetch', err);
         sendErrorMessage(
           ctx,
-          err.response.status === 503 ? 'Service unavailable' : err.message
+          err.response && err.response.status === 503
+            ? 'Service unavailable'
+            : err.message
         );
 
         ctx.reply(messages[ctx.session.language].tryAgain);
-
-        return ctx.scene.leave();
+        ctx.scene.enter('initialScene');
       }
-
-      trains = trains.filter(train => train.types.length > 0);
-
-      const inlineKeyboardButtons = [
-        [
-          Markup.callbackButton(
-            messages[ctx.session.language].searchTicketsOnAnotherDate,
-            'FIND_ANOTHER_DATE_TICKETS'
-          )
-        ],
-        [
-          Markup.callbackButton(
-            messages[ctx.session.language].searchAnotherDirectTrains,
-            'FIND_DIRECT_TICKETS'
-          )
-        ],
-        [
-          Markup.callbackButton(
-            messages[ctx.session.language].setLanguage,
-            'SET_LANGUAGE'
-          )
-        ],
-        [
-          Markup.callbackButton(
-            messages[ctx.session.language].remindMeWhenAvailable,
-            'REMIND_ME_WHEN_AVAILABLE'
-          )
-        ]
-      ];
-
-      if (trains.length === 0) {
-        inlineKeyboardButtons.push([
-          Markup.callbackButton(
-            messages[ctx.session.language].searchTicketsWithInterchange,
-            'FIND_INTERCHANGE_TICKETS'
-          )
-        ]);
-      } else {
-        inlineKeyboardButtons.push([
-          Markup.callbackButton(
-            messages[ctx.session.language].chooseReturn,
-            'FIND_RETURN_TICKET'
-          )
-        ]);
-      }
-
-      ctx.reply(
-        print.printTrainsList(
-          trains,
-          ctx.session.departureDate,
-          ctx.session.language
-        ),
-        Markup.inlineKeyboard(inlineKeyboardButtons).extra()
-      );
-
-      return ctx.wizard.next();
     };
 
     const userId =
