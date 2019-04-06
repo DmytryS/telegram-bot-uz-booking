@@ -481,8 +481,9 @@ const enterNumberOfTickets = new WizardScene(
       departureStationId: ctx.session.departureStation,
       arrivalStationId: ctx.session.arrivalStation,
       departureDate: ctx.session.departureDate,
-      amountOfTickets,
-      ticketTypes: ctx.session.ticketTypes
+      // amountOfTickets,
+      ticketTypes: ctx.session.ticketTypes,
+      status: 'ACTIVE'
     });
 
     if (existingJob) {
