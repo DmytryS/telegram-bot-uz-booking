@@ -8,8 +8,11 @@
     "url": "https://github.com/DmytryS/uz-booking-bot.git"
   },
   "scripts": {
-    "start": "NODE_ENV=production babel-node ./src/app.js",
+    "start": "NODE_ENV=production node ./build/src/app.js",
     "dev": "NODE_ENV=development nodemon --watch src --exec babel-node ./src/app.js",
+    "clean": "rm -rf build && mkdir build",
+    "build-server": "babel -d ./build ./ -s --ignore 'node_modules/**/*.js'",
+    "build": "npm run clean && npm run build-server",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "prettier --list-different 'src/**/*.js' && eslint 'src/**/*.js'",
     "lint:fix": "prettier --write 'src/**/*.js' && eslint --fix 'src/**/*.js'"
