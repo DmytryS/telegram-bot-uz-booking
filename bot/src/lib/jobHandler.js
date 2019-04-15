@@ -17,65 +17,62 @@ export default class JobsHandler {
 
       const subscribeEmmitter = await queue.subscribe(queueName, 'fanout');
 
-      subscribeEmmitter
-        .on('data', async data => {
-          try {
-            let { jobId, type } = JSON.parse(data);
+      subscribeEmmitter.on('data', async data => {
+        try {
+          let { jobId, type } = JSON.parse(data);
 
-            const job = await Job.findById(jobId).populate('user');
-            const uzClient = new UzClient(job.user.language);
+          const job = await Job.findById(jobId).populate('user');
+          const uzClient = new UzClient(job.user.language);
 
-            let message = false;
-            let response;
-            let trains;
+          let message = false;
+          let response;
+          let trains;
 
-            switch (type) {
-              case 'FAILED':
-              case 'EXPIRATION':
-                message = messages[job.user.language].watcherDidnotFoundTicket;
-                break;
-              case 'FOUND':
-                response = await uzClient.Train.find(
-                  job.departureStationId,
-                  job.arrivalStationId,
+          switch (type) {
+            case 'FAILED':
+            case 'EXPIRATION':
+              message = messages[job.user.language].watcherDidnotFoundTicket;
+              break;
+            case 'FOUND':
+              response = await uzClient.Train.find(
+                job.departureStationId,
+                job.arrivalStationId,
+                moment(job.departureDate).format('YYYY-MM-DD'),
+                '00:00'
+              );
+
+              if (
+                !response ||
+                (response.data.data && !response.data.data.list)
+              ) {
+                throw new Error(response.data.data);
+              }
+
+              trains = response.data.data.list.filter(
+                train => train.types.length > 0
+              );
+
+              if (trains.length > 0) {
+                message = messages[job.user.language].watcherFoundTicket + '\n';
+                message += print.printTrainsList(
+                  trains,
                   moment(job.departureDate).format('YYYY-MM-DD'),
-                  '00:00'
+                  job.user.language
                 );
-
-                if (
-                  !response ||
-                  (response.data.data && !response.data.data.list)
-                ) {
-                  throw new Error(response.data.data);
-                }
-
-                trains = response.data.data.list.filter(
-                  train => train.types.length > 0
-                );
-
-                if (trains.length > 0) {
-                  message =
-                    messages[job.user.language].watcherFoundTicket + '\n';
-                  message += print.printTrainsList(
-                    trains,
-                    moment(job.departureDate).format('YYYY-MM-DD'),
-                    job.user.language
-                  );
-                }
-                break;
-              default:
-                this.logger.error(`Unexpected data ${data}`);
-                break;
-            }
-
-            if (message) {
-              this.bot.telegram.sendMessage(job.chatId, message);
-            }
-          } catch (error) {
-            this.logger.error(error);
+              }
+              break;
+            default:
+              this.logger.error(`Unexpected data ${data}`);
+              break;
           }
-        })
-        .bind(this);
+
+          if (message) {
+            this.bot.telegram.sendMessage(job.chatId, message);
+          }
+        } catch (error) {
+          this.logger.error(error);
+        }
+      });
 
       subscribeEmmitter.on('error', error => this.logger.error(error));
     } catch (error) {
