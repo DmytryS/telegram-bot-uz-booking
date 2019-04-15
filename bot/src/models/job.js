@@ -1,9 +1,9 @@
 import mongoose from 'mongoose';
 
 const statusTypes = {
-  values: ['ACTIVE', 'COMPLETED', 'EXPIRED', 'CANCELED'],
+  values: ['ACTIVE', 'COMPLETED', 'EXPIRED', 'CANCELED', 'FAILED'],
   message:
-    "Value must be either of 'ACTIVE', 'COMPLETED', 'EXPIRED', 'CANCELED'"
+    "Value must be either of 'ACTIVE', 'COMPLETED', 'EXPIRED', 'CANCELED', 'FAILED'"
 };
 
 const ticketTypes = {
@@ -90,6 +90,12 @@ class Job {
 
   async markAsCanceled() {
     this.status = 'CANCELED';
+
+    return this.save();
+  }
+
+  async markAsFailed() {
+    this.status = 'FAILED';
 
     return this.save();
   }

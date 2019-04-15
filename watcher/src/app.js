@@ -47,45 +47,58 @@ const subscribeJobs = async () => {
       let notification = { jobId };
 
       if (job) {
-        const uzClient = new UzClient(job.user.language);
+        try {
+          const uzClient = new UzClient(job.user.language);
 
-        const response = await uzClient.Train.find(
-          job.departureStationId,
-          job.arrivalStationId,
-          moment(job.departureDate).format('YYYY-MM-DD'),
-          '00:00'
-        );
-
-        if (!response || (response.data.data && !response.data.data.list)) {
-          throw new Error(response.data.data);
-        }
-
-        const trains = response.data.data.list.filter(
-          train => train.types.length > 0
-        );
-
-        if (trains.length > 0) {
-          const trainsContainSeatType = trains.some(train =>
-            train.types.some(seat =>
-              job.ticketTypes.includes(
-                _.invert(seatNames[job.user.language])[seat.title]
-              )
-            )
+          const response = await uzClient.Train.find(
+            job.departureStationId,
+            job.arrivalStationId,
+            moment(job.departureDate).format('YYYY-MM-DD'),
+            '00:00'
           );
 
-          if (trainsContainSeatType) {
-            notification.type = 'FOUND';
-
-            await job.markAsSucceded();
-
-            watcherLogger.info(`Found tickets for job with id ${jobId}`);
-
-            await queue.publish(
-              process.env.NOTIFICATIONS_QUEUE,
-              'fanout',
-              JSON.stringify(notification)
-            );
+          if (!response || (response.data.data && !response.data.data.list)) {
+            throw new Error(response.data.data);
           }
+
+          const trains = response.data.data.list.filter(
+            train => train.types.length > 0
+          );
+
+          if (trains.length > 0) {
+            const trainsContainSeatType = trains.some(train =>
+              train.types.some(seat =>
+                job.ticketTypes.includes(
+                  _.invert(seatNames[job.user.language])[seat.title]
+                )
+              )
+            );
+
+            if (trainsContainSeatType) {
+              notification.type = 'FOUND';
+
+              await job.markAsSucceded();
+
+              watcherLogger.info(`Found tickets for job with id ${jobId}`);
+
+              await queue.publish(
+                process.env.NOTIFICATIONS_QUEUE,
+                'fanout',
+                JSON.stringify(notification)
+              );
+            }
+          }
+        } catch (error) {
+          await job.markAsFailed();
+
+          notification.type = 'FAILED';
+          await queue.publish(
+            process.env.NOTIFICATIONS_QUEUE,
+            'fanout',
+            JSON.stringify(notification)
+          );
+
+          watcherLogger.error(error);
         }
       }
     });

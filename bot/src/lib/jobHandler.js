@@ -28,6 +28,7 @@ export default class JobsHandler {
         let trains;
 
         switch (type) {
+          case 'FAILED':
           case 'EXPIRATION':
             message = messages[job.user.language].watcherDidnotFoundTicket;
             break;
