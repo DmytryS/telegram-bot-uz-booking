@@ -89,14 +89,13 @@ const subscribeJobs = async () => {
             }
           }
         } catch (error) {
-          await job.markAsFailed();
-
-          notification.type = 'FAILED';
-          await queue.publish(
-            process.env.NOTIFICATIONS_QUEUE,
-            'fanout',
-            JSON.stringify(notification)
-          );
+          // await job.markAsFailed();
+          // notification.type = 'FAILED';
+          // await queue.publish(
+          //   process.env.NOTIFICATIONS_QUEUE,
+          //   'fanout',
+          //   JSON.stringify(notification)
+          // );
 
           watcherLogger.error(error);
         }
