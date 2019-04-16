@@ -13,7 +13,7 @@ export default class JobsHandler {
 
   async subscribeToQueue(queueName) {
     try {
-      await queue.connect();
+      await queue.start();
 
       const subscribeEmmitter = await queue.subscribe(queueName, 'fanout');
 

@@ -109,7 +109,7 @@ const subscribeJobs = async () => {
 };
 
 const intervalId = setInterval(() => {
-  queue.connect().then(isConnected => {
+  queue.start().then(isConnected => {
     if (isConnected) {
       clearInterval(intervalId);
       subscribeJobs();

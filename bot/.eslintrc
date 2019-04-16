@@ -25,6 +25,13 @@
     "trailing-comma": false,
     "import/prefer-default-export": "off",
     "no-console": 1,
-    "no-underscore-dangle": ["error", { "allow": ["_id", "_"] }]
+    "no-underscore-dangle": [
+      "error",
+      {
+        "allow": ["_id", "_"],
+        "enforceInMethodNames": false,
+        "allowAfterThis": true
+      }
+    ]
   }
 }

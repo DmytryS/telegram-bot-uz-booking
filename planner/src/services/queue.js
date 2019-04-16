@@ -4,13 +4,33 @@ import EventEmitter from 'events';
 
 export class Queue {
   constructor() {
-    this.logger = logger.getLogger('QUEUE');
-    this.connection = false;
+    this._logger = logger.getLogger('AMQP');
+    this._connection = false;
+    this._channel = false;
   }
 
-  async connect() {
+  get connection() {
+    return this._connection;
+  }
+
+  get channel() {
+    return this._channel;
+  }
+
+  async start() {
+    return this._initChannel();
+  }
+
+  async stop() {
+    await this._closeChannel();
+    await this._closeConnection();
+  }
+
+  async _getConnection() {
     let conn = this.connection;
+
     while (!conn) {
+      this._logger.info('Trying to connect RabbitMQ');
       try {
         // eslint-disable-next-line
         conn = await amqp.connect(process.env.RABBIT_MQ_URI);
@@ -21,39 +41,88 @@ export class Queue {
           setTimeout(resolve, process.env.RABBIT_RECONNECT_INTERVAL)
         );
       }
-      this.logger.info('Trying to connect RabbitMQ');
+      if (conn) {
+        this.connection.on('close', this._onClose);
+        this.connection.on('error', this._onError);
+      }
     }
 
-    this.logger.info('Connected to RabbitMQ');
+    this._logger.info('Connected to RabbitMQ');
 
-    return true;
+    return conn;
+  }
+
+  /**
+   * Closes connection
+   */
+  async _closeConnection() {
+    if (!this.connection) {
+      return;
+    }
+    await this.connection.close();
+  }
+
+  async _initChannel() {
+    if (this.channel) {
+      return;
+    }
+    const connection = await this._getConnection();
+    const channel = await connection.createChannel();
+    this._channel = channel;
+
+    // eslint-disable-next-line
+    return this._channel;
+  }
+
+  /**
+   * Closes channel
+   */
+  async _closeChannel() {
+    if (!this.channel) {
+      return;
+    }
+    await this.channel.close();
+  }
+
+  _onClose() {
+    this._logger.info('Connected to RabbitMQ');
+
+    this._logger.info('Reconnecting');
+    return setTimeout(
+      this._getConnection,
+      process.env.RABBIT_RECONNECT_INTERVAL
+    );
+  }
+
+  _onError(err) {
+    if (err.message !== 'Connection closing') {
+      this._logger.info('Connection error', err.message);
+    }
   }
 
   async produce(queue, message, durable = false, persistent = false) {
-    const channel = await this.connection.createChannel();
-
-    await channel.assertQueue(queue, { durable });
-    await channel.sendToQueue(queue, Buffer.from(message), { persistent });
+    await this.channel.assertQueue(queue, { durable });
+    await this.channel.sendToQueue(queue, Buffer.from(message), {
+      persistent
+    });
 
     // this.logger.info('Message produced: ', queue, message);
   }
 
   async consume(queue, isNoAck = false, durable = false, prefetch = null) {
-    const channel = await this.connection.createChannel();
-
-    await channel.assertQueue(queue, { durable });
+    await this.channel.assertQueue(queue, { durable });
 
     if (prefetch) {
-      channel.prefetch(prefetch);
+      this.channel.prefetch(prefetch);
     }
     const consumeEmitter = new EventEmitter();
     try {
-      channel.consume(
+      this.channel.consume(
         queue,
         message => {
           if (message !== null) {
             consumeEmitter.emit('data', message.content.toString(), () =>
-              channel.ack(message)
+              this.channel.ack(message)
             );
           } else {
             const error = new Error('NullMessageException');
@@ -63,35 +132,33 @@ export class Queue {
         { noAck: isNoAck }
       );
     } catch (error) {
-      this.logger.error(`Consume error occured: ${error}`);
+      this._logger.error(`Consume error occured: ${error}`);
       consumeEmitter.emit('error', error);
     }
     return consumeEmitter;
   }
 
   async publish(exchangeName, exchangeType, message) {
-    const channel = await this.connection.createChannel();
-
-    await channel.assertExchange(exchangeName, exchangeType, {
+    await this.channel.assertExchange(exchangeName, exchangeType, {
       durable: false
     });
-    await channel.publish(exchangeName, '', Buffer.from(message));
+    await this.channel.publish(exchangeName, '', Buffer.from(message));
 
     // this.logger.info('Message published: ', exchangeName, message);
   }
 
   async subscribe(exchangeName, exchangeType) {
-    const channel = await this.connection.createChannel();
-
-    await channel.assertExchange(exchangeName, exchangeType, {
+    await this.channel.assertExchange(exchangeName, exchangeType, {
       durable: false
     });
-    const queue = await channel.assertQueue('', { exclusive: true });
-    channel.bindQueue(queue.queue, exchangeName, '');
+    const queue = await this.channel.assertQueue('', {
+      exclusive: true
+    });
+    this.channel.bindQueue(queue.queue, exchangeName, '');
     const consumeEmitter = new EventEmitter();
 
     try {
-      channel.consume(
+      this.channel.consume(
         queue.queue,
         message => {
           if (message !== null) {
@@ -104,7 +171,7 @@ export class Queue {
         { noAck: true }
       );
     } catch (error) {
-      this.logger.error(`Subscribe error occured: ${error}`);
+      this._logger.error(`Subscribe error occured: ${error}`);
       consumeEmitter.emit('error', error);
     }
     return consumeEmitter;
