@@ -42,12 +42,11 @@ export class Queue {
         );
       }
       if (conn) {
-        this.connection.on('close', this._onClose);
-        this.connection.on('error', this._onError);
+        this._logger.info('Connected to RabbitMQ');
+        // this.connection.on('close', this._onClose);
+        // this.connection.on('error', this._onError);
       }
     }
-
-    this._logger.info('Connected to RabbitMQ');
 
     return conn;
   }
