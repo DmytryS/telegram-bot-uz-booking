@@ -47,3 +47,5 @@ const pushToQueue = async () => {
 queue.start().then(() => {
   plannerLogger.info('Planner is up');
 });
+
+setInterval(pushToQueue, process.env.JOBS_CHECK_INTERVAL);
