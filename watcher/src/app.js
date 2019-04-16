@@ -48,7 +48,7 @@ const subscribeJobs = async () => {
 
       if (job) {
         try {
-          const uzClient = new UzClient(job.user.language);
+          const uzClient = new UzClient(job.user.language || 'en');
 
           const response = await uzClient.Train.find(
             job.departureStationId,
@@ -69,7 +69,7 @@ const subscribeJobs = async () => {
             const trainsContainSeatType = trains.some(train =>
               train.types.some(seat =>
                 job.ticketTypes.includes(
-                  _.invert(seatNames[job.user.language])[seat.title]
+                  _.invert(seatNames[job.user.language || 'en'])[seat.title]
                 )
               )
             );
