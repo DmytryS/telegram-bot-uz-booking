@@ -108,12 +108,7 @@ const subscribeJobs = async () => {
   }
 };
 
-const intervalId = setInterval(() => {
-  queue.start().then(isConnected => {
-    if (isConnected) {
-      clearInterval(intervalId);
-      subscribeJobs();
-      watcherLogger.info('Watcher is up');
-    }
-  });
-}, process.env.RABBIT_RECONNECT_INTERVAL);
+queue.start().then(() => {
+  subscribeJobs();
+  watcherLogger.info('Watcher is up');
+});

@@ -44,13 +44,6 @@ const pushToQueue = async () => {
   }
 };
 
-const intervalId = setInterval(() => {
-  queue.start().then(isConnected => {
-    if (isConnected) {
-      clearInterval(intervalId);
-      plannerLogger.info('Planner is up');
-    }
-  });
-}, process.env.RABBIT_RECONNECT_INTERVAL);
-
-setInterval(pushToQueue, process.env.JOBS_CHECK_INTERVAL);
+queue.start().then(() => {
+  plannerLogger.info('Planner is up');
+});

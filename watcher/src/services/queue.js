@@ -18,7 +18,7 @@ export class Queue {
   }
 
   async start() {
-    return this._initChannel();
+    await this._initChannel();
   }
 
   async stop() {
@@ -68,9 +68,6 @@ export class Queue {
     const connection = await this._getConnection();
     const channel = await connection.createChannel();
     this._channel = channel;
-
-    // eslint-disable-next-line
-    return this._channel;
   }
 
   /**
