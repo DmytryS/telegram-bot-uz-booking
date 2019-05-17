@@ -454,23 +454,41 @@ const selectSeatType = new WizardScene('selectSeatType', ctx => {
       [Markup.callbackButton(messages[ctx.session.language].next, 'NEXT')]
     ]).extra();
 
-    ctx.reply(messages[ctx.session.language].selectWagonType, buttonList);
+    if (ctx.callbackQuery.data === 'REMIND_ME_WHEN_AVAILABLE') {
+      ctx.reply(messages[ctx.session.language].selectWagonType, buttonList);
+    } else {
+      ctx.editMessageText(
+        messages[ctx.session.language].selectWagonType,
+        buttonList
+      );
+    }
   }
 });
 
 const enterNumberOfTickets = new WizardScene(
   'enterNumberOfTickets',
   ctx => {
-    ctx.reply(messages[ctx.session.language].howManyTicketsYouNeed);
+    const buttonArr = [];
+
+    for (let i = 1; i < 5; i += 1) {
+      const button = [Markup.callbackButton(i, i.toString())];
+
+      buttonArr.push(button);
+    }
+
+    const buttonList = Markup.inlineKeyboard(buttonArr).extra();
+
+    ctx.reply(messages[ctx.session.language].howManyTicketsYouNeed, buttonList);
 
     return ctx.wizard.next();
   },
   async ctx => {
-    const amountOfTickets = parseInt(ctx.message.text, 10);
+    const amountOfTickets = parseInt(ctx.callbackQuery.data, 10);
 
     if (!amountOfTickets) {
       sendErrorMessage(ctx);
-      ctx.reply(messages[ctx.session.language].howManyTicketsYouNeed);
+      // ctx.reply(messages[ctx.session.language].howManyTicketsYouNeed);
+      ctx.back();
     }
 
     const user = await User.findOne({ telegramId: ctx.from.id });
@@ -485,6 +503,8 @@ const enterNumberOfTickets = new WizardScene(
       ticketTypes: ctx.session.ticketTypes,
       status: 'ACTIVE'
     });
+
+    ctx.session.ticketTypes = [];
 
     if (existingJob) {
       ctx.reply(messages[ctx.session.language].alreadyWatching);
