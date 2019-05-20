@@ -53,5 +53,6 @@ export default {
   jobStopped: (departureStation, arrivalStation, reason) =>
     `Looking after tickets ${departureStation} - ${arrivalStation} stopped ${reason ||
       ''}`,
-  alreadyWatching: 'I`m already watching for this direction'
+  alreadyWatching: 'I`m already watching for this direction',
+  getWagons: 'Show wagons'
 };

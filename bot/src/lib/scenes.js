@@ -295,10 +295,16 @@ const selectDepartureDate = new WizardScene(
             )
           ]);
         } else {
+          ctx.session.seatTypes = trains.types.map(type => type.letter);
+
           inlineKeyboardButtons.push([
             Markup.callbackButton(
               messages[ctx.session.language].chooseReturn,
               'FIND_RETURN_TICKET'
+            ),
+            Markup.callbackButton(
+              messages[ctx.session.language].getWagons,
+              'GET_WAGONS'
             )
           ]);
         }
@@ -347,6 +353,9 @@ const selectDepartureDate = new WizardScene(
           break;
         case 'SET_LANGUAGE':
           ctx.scene.enter('setlanguage');
+          break;
+        case 'GET_WAGONS':
+          ctx.scene.ctx.scene.enter('selectSeatType');
           break;
         case 'FIND_INTERCHANGE_TICKETS':
           // TODO
@@ -536,6 +545,10 @@ const enterNumberOfTickets = new WizardScene(
   }
 );
 
+const getWagons = new WizardScene('getWagons', async ctx => {
+  const user = await User.findOne({ telegramId: ctx.from.id });
+});
+
 export default {
   initialScene,
   setLanguage,
@@ -543,5 +556,6 @@ export default {
   selectArrivalStation,
   selectDepartureDate,
   selectSeatType,
-  enterNumberOfTickets
+  enterNumberOfTickets,
+  getWagons
 };

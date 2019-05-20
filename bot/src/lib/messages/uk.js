@@ -53,5 +53,6 @@ export default {
     `На даний момент я стежу за ${watchersCount} напрямками`,
   jobStopped: (departureStation, arrivalStation) =>
     `Спостереження за квитками на ${departureStation} - ${arrivalStation} припинено`,
-  alreadyWatching: 'Я вже спостерігаю за цим напрямком'
+  alreadyWatching: 'Я вже спостерігаю за цим напрямком',
+  getWagons: 'Показати вагони'
 };
