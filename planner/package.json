@@ -8,11 +8,8 @@
     "url": "https://github.com/DmytryS/uz-booking-bot.git"
   },
   "scripts": {
-    "start": "NODE_ENV=production node ./build/src/app.js",
-    "dev": "NODE_ENV=development nodemon --watch src --exec babel-node ./src/app.js",
-    "clean": "rm -rf build && mkdir build",
-    "build-server": "babel -d ./build ./ -s --ignore 'node_modules/**/*.js'",
-    "build": "npm run clean && npm run build-server",
+    "start": "node -r esm ./src/index",
+    "dev": "NODE_ENV=development nodemon --watch src -r esm ./src/index",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "prettier --list-different 'src/**/*.js' && eslint 'src/**/*.js'",
     "lint:fix": "prettier --write 'src/**/*.js' && eslint --fix 'src/**/*.js'"
@@ -22,6 +19,7 @@
   "dependencies": {
     "amqplib": "^0.5.3",
     "dotenv": "^6.2.0",
+    "esm": "^3.2.25",
     "lodash": "^4.17.11",
     "log4js": "^3.0.6",
     "moment-timezone": "^0.5.23",

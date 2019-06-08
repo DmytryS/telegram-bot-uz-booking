@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: planner
+  labels:
+    app: planner
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: planner
+  template:
+    metadata:
+      labels:
+        app: planner
+    spec:
+      containers:
+      - name: planner
+        image: loginkr/uz-booking-planner:latest
+        imagePullPolicy: Always
+        envFrom:
+        - configMapRef:
+            name: amqp
+        - configMapRef:
+            name: mongo
+        env:
+          - name: JOBS_CHECK_INTERVAL
+            value: 120000

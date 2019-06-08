@@ -2,38 +2,32 @@
   "name": "ticket-bot-service",
   "version": "1.0.0",
   "description": "Telegram bot service",
-  "main": "app.js",
+  "main": "index.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/DmytryS/uz-booking-bot.git"
   },
   "scripts": {
-    "start": "NODE_ENV=production node ./build/src/app.js",
-    "dev": "NODE_ENV=development nodemon --watch src --exec babel-node ./src/app.js",
-    "clean": "rm -rf build && mkdir build",
-    "build-server": "babel -d ./build ./ -s --ignore 'node_modules/**/*.js'",
-    "build": "npm run clean && npm run build-server",
+    "start": "node -r esm ./src/index",
+    "dev": "NODE_ENV=development nodemon --watch src -r esm ./src/index",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "prettier --list-different 'src/**/*.js' && eslint 'src/**/*.js'",
     "lint:fix": "prettier --write 'src/**/*.js' && eslint --fix 'src/**/*.js'"
   },
-  "author": "Dmytry Shvaika",
+  "author": "Dmytro Shvaika",
   "license": "MIT",
   "dependencies": {
     "amqplib": "^0.5.3",
     "dotenv": "^6.2.0",
+    "esm": "^3.2.25",
     "log4js": "^3.0.6",
     "moment": "^2.22.2",
     "mongoose": "^5.4.4",
     "telegraf": "^3.25.5",
     "telegraf-calendar-telegram": "^1.5.7",
-    "uz-booking-client": "^1.0.5"
+    "uz-booking-client": "^1.0.7"
   },
   "devDependencies": {
-    "@babel/cli": "^7.2.3",
-    "@babel/core": "^7.2.2",
-    "@babel/node": "^7.2.2",
-    "@babel/preset-env": "^7.2.3",
     "babel-eslint": "^10.0.1",
     "eslint": "^5.15.3",
     "eslint-config-airbnb-base": "^13.1.0",

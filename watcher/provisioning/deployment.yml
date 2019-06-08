@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: watcher
+  labels:
+    app: watcher
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: watcher
+  template:
+    metadata:
+      labels:
+        app: watcher
+    spec:
+      containers:
+      - name: watcher
+        image: loginkr/uz-booking-watcher:latest
+        imagePullPolicy: Always
+        envFrom:
+        - configMapRef:
+            name: amqp
+        - configMapRef:
+            name: mongo
