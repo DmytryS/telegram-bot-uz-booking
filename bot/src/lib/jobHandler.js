@@ -77,7 +77,7 @@ export default class JobsHandler {
 
       subscribeEmmitter.on('error', error => this.logger.error(error));
     } catch (error) {
-      this.logger.error(error);
+      this.logger.error(JSON.stringify(error));
     }
   }
 }
