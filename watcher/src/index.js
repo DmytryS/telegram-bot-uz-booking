@@ -60,7 +60,7 @@ const subscribeJobs = async () => {
           );
 
           if (!response || (response.data.data && !response.data.data.list)) {
-            throw new Error(response.data.data);
+            throw new Error(JSON.stringify(response.data.data));
           }
 
           const trains = response.data.data.list.filter(
