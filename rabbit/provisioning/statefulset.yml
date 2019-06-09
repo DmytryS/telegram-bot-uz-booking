@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: rabbit
+spec:
+  serviceName: rabbit
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rabbit
+  template:
+    metadata:
+      labels:
+        app: rabbit
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: rabbit
+        image: rabbitmq:latest
+        imagePullPolicy: Always
+        ports:
+        - name: amqp
+          containerPort: 5672

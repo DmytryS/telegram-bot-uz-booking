@@ -6,7 +6,7 @@ import messages from './messages';
 import { logger } from '../services';
 import { User, Job } from '../models';
 import { print } from '../utils';
-import { dateSelectEmitter, calendar } from '../app';
+import { dateSelectEmitter, calendar } from '..';
 
 const sceneLogger = logger.getLogger('Scene');
 const sendErrorMessage = (ctx, message) =>
