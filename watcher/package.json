@@ -2,7 +2,7 @@
   "name": "ticket-watcher-service",
   "version": "1.0.0",
   "description": "Watcher service",
-  "main": "app.js",
+  "main": "index.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/DmytryS/uz-booking-bot.git"

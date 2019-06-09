@@ -2,7 +2,7 @@
   "name": "ticket-watcher-planner-service",
   "version": "1.0.0",
   "description": "Planner service",
-  "main": "app.js",
+  "main": "index.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/DmytryS/uz-booking-bot.git"
@@ -14,7 +14,7 @@
     "lint": "prettier --list-different 'src/**/*.js' && eslint 'src/**/*.js'",
     "lint:fix": "prettier --write 'src/**/*.js' && eslint --fix 'src/**/*.js'"
   },
-  "author": "Dmytry Shvaika",
+  "author": "Dmytro Shvaika",
   "license": "MIT",
   "dependencies": {
     "amqplib": "^0.5.3",
