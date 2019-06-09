@@ -25,4 +25,4 @@ spec:
             name: mongo
         env:
           - name: JOBS_CHECK_INTERVAL
-            value: 120000
+            value: "120000"

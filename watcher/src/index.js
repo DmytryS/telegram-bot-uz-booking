@@ -42,6 +42,8 @@ const subscribeJobs = async () => {
     );
 
     subscribeEmmitter.on('data', async data => {
+      watcherLogger.info('Received message:', data);
+
       const { jobId } = JSON.parse(data);
       const job = await Job.findById(jobId).populate('user');
       let notification = { jobId };
