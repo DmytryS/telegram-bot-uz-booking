@@ -504,8 +504,6 @@ const enterNumberOfTickets = new WizardScene(
       status: 'ACTIVE'
     });
 
-    ctx.session.ticketTypes = [];
-
     if (existingJob) {
       ctx.reply(messages[ctx.session.language].alreadyWatching);
     } else {
@@ -531,6 +529,8 @@ const enterNumberOfTickets = new WizardScene(
 
       ctx.reply(messages[ctx.session.language].sayWhenAvailable);
     }
+
+    ctx.session.ticketTypes = [];
 
     ctx.scene.enter('initialScene');
   }
