@@ -46,7 +46,7 @@ export default class JobsHandler {
                 !response ||
                 (response.data.data && !response.data.data.list)
               ) {
-                throw new Error(response.data.data);
+                throw new Error(JSON.stringify(response.data.data));
               }
 
               trains = response.data.data.list.filter(
@@ -77,7 +77,7 @@ export default class JobsHandler {
 
       subscribeEmmitter.on('error', error => this.logger.error(error));
     } catch (error) {
-      this.logger.error(JSON.stringify(error));
+      this.logger.error(error);
     }
   }
 }
