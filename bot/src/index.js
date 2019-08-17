@@ -1,13 +1,13 @@
-import 'dotenv/config';
+import 'dotenv/config.js';
 import Telegraf from 'telegraf';
-import Stage from 'telegraf/stage';
-import telegrafSession from 'telegraf/session';
+import Stage from 'telegraf/stage.js';
+import telegrafSession from 'telegraf/session.js';
 import Calendar from 'telegraf-calendar-telegram';
 import EventEmitter from 'events';
-import { logger } from './services';
-import { botHandler, scenes, middlewares, JobHandler } from './lib';
+import { logger } from './services/index.js';
+import { botHandler, scenes, middlewares, JobHandler } from './lib/index.js';
 
-const appLogger = logger.getLogger('BotApp');
+// const appLogger = logger.getLogger('BotApp');
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
 export const dateSelectEmitter = new EventEmitter();
@@ -32,7 +32,7 @@ const stage = new Stage(
     scenes.selectDepartureDate,
     scenes.setLanguage,
     scenes.selectSeatType,
-    scenes.enterNumberOfTickets
+    scenes.enterNumberOfTickets,
   ],
   { ttl: 60 }
 );
@@ -58,6 +58,6 @@ bot.hears(/\/stop_watch_(.*)/, botHandler.stopWatch);
 bot.start(botHandler.start);
 bot.help(botHandler.help);
 bot.catch(err => {
-  appLogger.error('An error occured in app', err);
+  logger.error('An error occured in app', err);
 });
 bot.startPolling();

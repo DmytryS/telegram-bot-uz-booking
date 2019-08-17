@@ -1,4 +1,4 @@
-import { User } from '../models';
+import { User } from '../models/index.js';
 
 const getUserLanguage = async (ctx, next) => {
   if (!ctx.session.language) {
@@ -13,5 +13,5 @@ const getUserLanguage = async (ctx, next) => {
 };
 
 export default {
-  getUserLanguage
+  getUserLanguage,
 };

@@ -1,23 +1,23 @@
-import { Markup } from 'telegraf';
-import messages from './messages';
-import { User, Job } from '../models';
-import { print } from '../utils';
+import Markup from 'telegraf/markup.js';
+import messages from './messages/index.js';
+import { User, Job } from '../models/index.js';
+import { print } from '../utils/index.js';
 
 const start = async ctx => {
   await User.updateOne(
     {
-      telegramId: ctx.update.message.from.id
+      telegramId: ctx.update.message.from.id,
     },
     {
       telegramId: ctx.update.message.from.id,
       firstName: ctx.update.message.from.first_name,
       lastName: ctx.update.message.from.last_name,
       userName: ctx.update.message.from.username,
-      botEnabled: true
+      botEnabled: true,
     },
     {
       upsert: true,
-      setDefaultsOnInsert: true
+      setDefaultsOnInsert: true,
     }
   );
 
@@ -34,7 +34,7 @@ const start = async ctx => {
         messages[ctx.session.language].setLanguage,
         'SET_LANGUAGE'
       ),
-      Markup.callbackButton(messages[ctx.session.language].help, 'HELP')
+      Markup.callbackButton(messages[ctx.session.language].help, 'HELP'),
     ]).extra()
   );
 
@@ -57,7 +57,7 @@ const getWatchers = async ctx => {
   const user = await User.findOne({ telegramId: ctx.from.id });
   const jobs = await Job.find({
     status: 'ACTIVE',
-    user: user._id
+    user: user._id,
   });
 
   ctx.reply(print.printWatchersList(jobs, ctx.session.language));
@@ -98,5 +98,5 @@ export default {
   getWatchers,
   stop,
   stopWatch,
-  help
+  help,
 };

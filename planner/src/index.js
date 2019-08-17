@@ -1,9 +1,7 @@
-import 'dotenv/config';
+import 'dotenv/config.js';
 import moment from 'moment-timezone';
-import { logger, queue } from './services';
-import { Job } from './models';
-
-const plannerLogger = logger.getLogger('PlanerApp');
+import { logger, queue } from './services/index.js';
+import { Job } from './models/index.js';
 
 const pushToQueue = async () => {
   try {
@@ -40,12 +38,12 @@ const pushToQueue = async () => {
       );
     }
   } catch (error) {
-    plannerLogger.error(error);
+    logger.error(error);
   }
 };
 
 queue.start().then(() => {
-  plannerLogger.info('Planner is up');
+  logger.info('Planner is up');
 });
 
 setInterval(pushToQueue, process.env.JOBS_CHECK_INTERVAL);

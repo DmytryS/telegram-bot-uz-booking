@@ -1,13 +1,13 @@
 import UzClient from 'uz-booking-client';
 import moment from 'moment';
-import { queue, logger } from '../services';
-import { Job } from '../models';
-import messages from './messages';
-import { print } from '../utils';
+import { queue, logger } from '../services/index.js';
+import { Job } from '../models/index.js';
+import messages from './messages/index.js';
+import { print } from '../utils/index.js';
 
 export default class JobsHandler {
   constructor(bot) {
-    this.logger = logger.getLogger('JobHandler');
+    // logger = logger.getLogger('JobHandler');
     this.bot = bot;
   }
 
@@ -19,11 +19,11 @@ export default class JobsHandler {
 
       subscribeEmmitter.on('data', async data => {
         try {
-          this.logger.info('Received message:', data);
+          logger.info('Received message:', data);
           let { jobId, type } = JSON.parse(data);
 
           const job = await Job.findById(jobId).populate('user');
-          const uzClient = new UzClient(job.user.language);
+          const uzClient = new UzClient.ApiV2(job.user.language);
 
           let message = false;
           let response;
@@ -39,18 +39,18 @@ export default class JobsHandler {
                 job.departureStationId,
                 job.arrivalStationId,
                 moment(job.departureDate).format('YYYY-MM-DD'),
-                '00:00'
+                '00:00:00'
               );
 
               if (
                 !response ||
-                (response.data.data && !response.data.data.list)
+                (response.data.data && !response.data.data.trains)
               ) {
                 throw new Error(JSON.stringify(response.data.data));
               }
 
-              trains = response.data.data.list.filter(
-                train => train.types.length > 0
+              trains = response.data.data.trains.filter(
+                train => train.wagon_types.length > 0
               );
 
               if (trains.length > 0) {
@@ -63,7 +63,7 @@ export default class JobsHandler {
               }
               break;
             default:
-              this.logger.error(`Unexpected data ${data}`);
+              logger.error(`Unexpected data ${data}`);
               break;
           }
 
@@ -71,13 +71,13 @@ export default class JobsHandler {
             this.bot.telegram.sendMessage(job.chatId, message);
           }
         } catch (error) {
-          this.logger.error(error);
+          logger.error(error);
         }
       });
 
-      subscribeEmmitter.on('error', error => this.logger.error(error));
+      subscribeEmmitter.on('error', error => logger.error(error));
     } catch (error) {
-      this.logger.error(error);
+      logger.error(error);
     }
   }
 }

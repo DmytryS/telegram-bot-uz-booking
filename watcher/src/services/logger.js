@@ -1,21 +1,15 @@
-import log4js from 'log4js';
+import winston from 'winston';
 
-const appenders = {
-  console: {
-    type: 'console'
-  }
-};
-const categories = {
-  default: {
-    appenders: ['console'],
-    level: 'info'
-  }
-};
+const logger = winston.createLogger({
+  level: process.env.NODE_ENV === 'development' ? 'debug' : 'info',
+  format: winston.format.combine(
+    winston.format.colorize(),
+    winston.format.timestamp({
+      format: 'YYYY-MM-DD HH:mm:ss',
+    }),
+    winston.format.printf((info) => `${info.timestamp} [${info.level}]: ${info.message}`),
+  ),
+  transports: [new winston.transports.Console()],
+});
 
-if (process.env.NODE_ENV === 'development') {
-  // categories.default.level = 'debug';
-}
-
-log4js.configure({ categories, appenders });
-
-export default log4js;
+export default logger;

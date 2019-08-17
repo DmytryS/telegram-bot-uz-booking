@@ -16,6 +16,12 @@ export default {
   seating1stClass: 'Сидячий первого класса',
   seating2ndClass: 'Сидячий второго класса',
   seating3dClass: 'Сидячий третьего класса',
+  BERTH: 'Плацкарт',
+  DE_LUXE: 'Люкс',
+  COMPARTMENT: 'Купе',
+  SEATING_1ST_CLASS: 'Сидячий первого класса',
+  SEATING_2ND_CLASS: 'Сидячий второго класса',
+  SEATING_3D_CLASS: 'Сидячий третьего класса',
   selectAtLeastOneSeatType: 'Выберите хотябы один тип',
   next: '➡️ Далее',
   selectWagonType: 'Выберите тип вагона',
@@ -54,6 +60,6 @@ export default {
     `На даний момент я слежу за ${watchersCount} направлениями`,
   jobStopped: (departureStation, arrivalStation, reason) =>
     `Наблюдение за билетами на ${departureStation} - ${arrivalStation} остановлено ${reason ||
-      ''}`,
-  alreadyWatching: 'Я уже слежу за этим направлением'
+    ''}`,
+  alreadyWatching: 'Я уже слежу за этим направлением',
 };

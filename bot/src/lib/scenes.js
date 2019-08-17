@@ -1,14 +1,14 @@
-import WizardScene from 'telegraf/scenes/wizard';
-import { Extra, Markup } from 'telegraf';
+import WizardScene from 'telegraf/scenes/wizard/index.js';
+import Markup from 'telegraf/markup.js';
+import Extra from 'telegraf/extra.js'
 import moment from 'moment';
 import UzClient from 'uz-booking-client';
-import messages from './messages';
-import { logger } from '../services';
-import { User, Job } from '../models';
-import { print } from '../utils';
-import { dateSelectEmitter, calendar } from '..';
+import messages from './messages/index.js';
+import { logger } from '../services/index.js';
+import { User, Job } from '../models/index.js';
+import { print } from '../utils/index.js';
+import { dateSelectEmitter, calendar } from '../index.js';
 
-const sceneLogger = logger.getLogger('Scene');
 const sendErrorMessage = (ctx, message) =>
   ctx.reply(`${messages[ctx.session.language].errorOccured}\n${message || ''}`);
 
@@ -24,7 +24,7 @@ const initialScene = new WizardScene('initialScene', ctx => {
         messages[ctx.session.language].setLanguage,
         'SET_LANGUAGE'
       ),
-      Markup.callbackButton(messages[ctx.session.language].help, 'HELP')
+      Markup.callbackButton(messages[ctx.session.language].help, 'HELP'),
     ]).extra()
   );
 
@@ -37,7 +37,7 @@ const setLanguage = new WizardScene(
     ctx.session.languages = {
       '🇬🇧 English': 'en',
       '🇷🇺 Русский': 'ru',
-      '🇺🇦 Українська': 'uk'
+      '🇺🇦 Українська': 'uk',
     };
 
     ctx.reply(
@@ -56,10 +56,10 @@ const setLanguage = new WizardScene(
 
     await User.updateOne(
       {
-        telegramId: ctx.update.message.from.id
+        telegramId: ctx.update.message.from.id,
       },
       {
-        language: ctx.session.languages[ctx.message.text]
+        language: ctx.session.languages[ctx.message.text],
       }
     );
 
@@ -78,12 +78,13 @@ const selectDepartureStation = new WizardScene(
     let stations = [];
 
     try {
-      const uzClient = new UzClient(ctx.session.language);
+
+      const uzClient = new UzClient.ApiV1(ctx.session.language);
       const response = await uzClient.Station.find(ctx.message.text);
 
       stations = response.data;
     } catch (err) {
-      sceneLogger.error('An error occured during departure station fetch', err);
+      logger.error('An error occured during departure station fetch', err);
       sendErrorMessage(
         ctx,
         err.response && err.response.status === 503
@@ -146,12 +147,12 @@ const selectArrivalStation = new WizardScene(
     let stations = [];
 
     try {
-      const uzClient = new UzClient(ctx.session.language);
+      const uzClient = new UzClient.ApiV1(ctx.session.language);
       const response = await uzClient.Station.find(ctx.message.text);
 
       stations = response.data;
     } catch (err) {
-      sceneLogger.error('An error occured during arrival station fetch', err);
+      logger.error('An error occured during arrival station fetch', err);
 
       sendErrorMessage(
         ctx,
@@ -229,7 +230,7 @@ const selectDepartureDate = new WizardScene(
       let trains = [];
 
       try {
-        const uzClient = new UzClient(ctx.session.language);
+        const uzClient = new UzClient.ApiV2(ctx.session.language);
         let response = false;
 
         // eslint-disable-next-line
@@ -239,7 +240,7 @@ const selectDepartureDate = new WizardScene(
               ctx.session.departureStation,
               ctx.session.arrivalStation,
               ctx.session.departureDate,
-              '00:00'
+              '00:00:00'
             );
             break;
           case 'INTERCHANGE':
@@ -252,12 +253,12 @@ const selectDepartureDate = new WizardScene(
             break;
         }
 
-        if (!response || (response.data.data && !response.data.data.list)) {
+        if (!response || (response.data.data && !response.data.data.trains)) {
           throw new Error(response.data.data);
         }
 
-        trains = response.data.data.list.filter(
-          train => train.types.length > 0
+        trains = response.data.data.trains.filter(
+          train => train.wagon_types.length > 0
         );
 
         const inlineKeyboardButtons = [
@@ -265,26 +266,26 @@ const selectDepartureDate = new WizardScene(
             Markup.callbackButton(
               messages[ctx.session.language].searchTicketsOnAnotherDate,
               'FIND_ANOTHER_DATE_TICKETS'
-            )
+            ),
           ],
           [
             Markup.callbackButton(
               messages[ctx.session.language].searchAnotherDirectTrains,
               'FIND_DIRECT_TICKETS'
-            )
+            ),
           ],
           [
             Markup.callbackButton(
               messages[ctx.session.language].setLanguage,
               'SET_LANGUAGE'
-            )
+            ),
           ],
           [
             Markup.callbackButton(
               messages[ctx.session.language].remindMeWhenAvailable,
               'REMIND_ME_WHEN_AVAILABLE'
-            )
-          ]
+            ),
+          ],
         ];
 
         if (trains.length === 0) {
@@ -292,14 +293,14 @@ const selectDepartureDate = new WizardScene(
             Markup.callbackButton(
               messages[ctx.session.language].searchTicketsWithInterchange,
               'FIND_INTERCHANGE_TICKETS'
-            )
+            ),
           ]);
         } else {
           inlineKeyboardButtons.push([
             Markup.callbackButton(
               messages[ctx.session.language].chooseReturn,
               'FIND_RETURN_TICKET'
-            )
+            ),
           ]);
         }
 
@@ -314,7 +315,7 @@ const selectDepartureDate = new WizardScene(
 
         return ctx.wizard.next();
       } catch (err) {
-        sceneLogger.error('An error occured during trains fetch', err);
+        logger.error('An error occured during trains fetch', err);
         sendErrorMessage(
           ctx,
           err.response && err.response.status === 503
@@ -406,52 +407,52 @@ const selectSeatType = new WizardScene('selectSeatType', ctx => {
       [
         Markup.callbackButton(
           `${ctx.session.ticketTypes.indexOf('COMPARTMENT') > -1 ? '✅ ' : ''}${
-            messages[ctx.session.language].compartment
+          messages[ctx.session.language].compartment
           }`,
           'COMPARTMENT'
         ),
         Markup.callbackButton(
           `${ctx.session.ticketTypes.indexOf('BERTH') > -1 ? '✅ ' : ''}${
-            messages[ctx.session.language].berth
+          messages[ctx.session.language].berth
           }`,
           'BERTH'
         ),
         Markup.callbackButton(
           `${ctx.session.ticketTypes.indexOf('DE_LUXE') > -1 ? '✅ ' : ''}${
-            messages[ctx.session.language].deLuxe
+          messages[ctx.session.language].deLuxe
           }`,
           'DE_LUXE'
-        )
+        ),
       ],
       [
         Markup.callbackButton(
           `${
-            ctx.session.ticketTypes.indexOf('SEATING_1ST_CLASS') > -1
-              ? '✅ '
-              : ''
+          ctx.session.ticketTypes.indexOf('SEATING_1ST_CLASS') > -1
+            ? '✅ '
+            : ''
           }${messages[ctx.session.language].seating1stClass}`,
           'SEATING_1ST_CLASS'
-        )
+        ),
       ],
       [
         Markup.callbackButton(
           `${
-            ctx.session.ticketTypes.indexOf('SEATING_2ND_CLASS') > -1
-              ? '✅ '
-              : ''
+          ctx.session.ticketTypes.indexOf('SEATING_2ND_CLASS') > -1
+            ? '✅ '
+            : ''
           }${messages[ctx.session.language].seating2ndClass}`,
           'SEATING_2ND_CLASS'
-        )
+        ),
       ],
       [
         Markup.callbackButton(
           `${
-            ctx.session.ticketTypes.indexOf('SEATING_3D_CLASS') > -1 ? '✅' : ''
+          ctx.session.ticketTypes.indexOf('SEATING_3D_CLASS') > -1 ? '✅' : ''
           }${messages[ctx.session.language].seating3dClass}`,
           'SEATING_3D_CLASS'
-        )
+        ),
       ],
-      [Markup.callbackButton(messages[ctx.session.language].next, 'NEXT')]
+      [Markup.callbackButton(messages[ctx.session.language].next, 'NEXT')],
     ]).extra();
 
     if (ctx.callbackQuery.data === 'REMIND_ME_WHEN_AVAILABLE') {
@@ -501,7 +502,7 @@ const enterNumberOfTickets = new WizardScene(
       departureDate: ctx.session.departureDate,
       // amountOfTickets,
       ticketTypes: ctx.session.ticketTypes,
-      status: 'ACTIVE'
+      status: 'ACTIVE',
     });
 
     if (existingJob) {
@@ -516,7 +517,7 @@ const enterNumberOfTickets = new WizardScene(
         arrivalStationName: ctx.session.arrivalStationName,
         departureDate: ctx.session.departureDate,
         amountOfTickets,
-        ticketTypes: ctx.session.ticketTypes
+        ticketTypes: ctx.session.ticketTypes,
       }).save();
 
       // await queue.publish(
@@ -543,5 +544,5 @@ export default {
   selectArrivalStation,
   selectDepartureDate,
   selectSeatType,
-  enterNumberOfTickets
+  enterNumberOfTickets,
 };

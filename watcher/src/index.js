@@ -1,11 +1,9 @@
-import 'dotenv/config';
+import 'dotenv/config.js';
 import moment from 'moment';
 import UzClient from 'uz-booking-client';
 import _ from 'underscore';
-import { logger, queue } from './services';
-import { Job } from './models';
-
-const watcherLogger = logger.getLogger('WatcherApp');
+import { logger, queue } from './services/index.js';
+import { Job } from './models/index.js';
 
 const seatNames = {
   en: {
@@ -42,7 +40,7 @@ const subscribeJobs = async () => {
     );
 
     subscribeEmmitter.on('data', async data => {
-      watcherLogger.info('Received message:', data);
+      logger.info('Received message:', data);
 
       const { jobId } = JSON.parse(data);
       const job = await Job.findById(jobId).populate('user');
@@ -81,7 +79,7 @@ const subscribeJobs = async () => {
 
               await job.markAsSucceded();
 
-              watcherLogger.info(`Found tickets for job with id ${jobId}`);
+              logger.info(`Found tickets for job with id ${jobId}`);
 
               await queue.publish(
                 process.env.NOTIFICATIONS_QUEUE,
@@ -99,18 +97,18 @@ const subscribeJobs = async () => {
           //   JSON.stringify(notification)
           // );
 
-          watcherLogger.error(error);
+          logger.error(error);
         }
       }
     });
 
-    subscribeEmmitter.on('error', error => watcherLogger.error(error));
+    subscribeEmmitter.on('error', error => logger.error(error));
   } catch (error) {
-    watcherLogger.error(error);
+    logger.error(error);
   }
 };
 
 queue.start().then(() => {
   subscribeJobs();
-  watcherLogger.info('Watcher is up');
+  logger.info('Watcher is up');
 });

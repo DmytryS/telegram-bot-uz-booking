@@ -1,10 +1,9 @@
 import amqp from 'amqplib';
-import logger from './logger';
+import logger from './logger.js';
 import EventEmitter from 'events';
 
 export class Queue {
   constructor() {
-    this._logger = logger.getLogger('AMQP');
     this._connection = false;
     this._channel = false;
   }
@@ -30,7 +29,7 @@ export class Queue {
     let conn = this.connection;
 
     while (!conn) {
-      this._logger.info('Trying to connect RabbitMQ');
+      logger.info('Trying to connect RabbitMQ');
       try {
         // eslint-disable-next-line
         conn = await amqp.connect(process.env.RABBIT_MQ_URI);
@@ -42,7 +41,7 @@ export class Queue {
         );
       }
       if (conn) {
-        this._logger.info('Connected to RabbitMQ');
+        logger.info('Connected to RabbitMQ');
         // this.connection.on('close', this._onClose);
         // this.connection.on('error', this._onError);
       }
@@ -81,18 +80,19 @@ export class Queue {
   }
 
   _onClose() {
-    this._logger.info('Connected to RabbitMQ');
+    logger.info('Connected to RabbitMQ');
 
-    this._logger.info('Reconnecting');
+    logger.info('Reconnecting');
     return setTimeout(
       this._getConnection,
       process.env.RABBIT_RECONNECT_INTERVAL
     );
   }
 
+  // eslint-disable-next-line
   _onError(err) {
     if (err.message !== 'Connection closing') {
-      this._logger.info('Connection error', err.message);
+      logger.info('Connection error', err.message);
     }
   }
 
@@ -128,7 +128,7 @@ export class Queue {
         { noAck: isNoAck }
       );
     } catch (error) {
-      this._logger.error(`Consume error occured: ${error}`);
+      logger.error(`Consume error occured: ${error}`);
       consumeEmitter.emit('error', error);
     }
     return consumeEmitter;
@@ -167,7 +167,7 @@ export class Queue {
         { noAck: true }
       );
     } catch (error) {
-      this._logger.error(`Subscribe error occured: ${error}`);
+      logger.error(`Subscribe error occured: ${error}`);
       consumeEmitter.emit('error', error);
     }
     return consumeEmitter;

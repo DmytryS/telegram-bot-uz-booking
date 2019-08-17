@@ -1,5 +1,5 @@
 import moment from 'moment';
-import { messages } from '../lib';
+import { messages } from '../lib/index.js';
 
 const trainLogo = category => {
   switch (category) {
@@ -13,6 +13,17 @@ const trainLogo = category => {
       return '💁';
   }
 };
+
+const placeTypes = {
+  'К': 'COMPARTMENT',
+  'Л': 'DE_LUXE',
+  'П': 'BERTH',
+  'С-1': 'SEATING_1ST_CLASS',
+  'С-2': 'SEATING_2ND_CLASS',
+  'С-3': 'SEATING_3D_CLASS',
+}
+
+const getPlaceType = (wagonType) => placeTypes[`${wagonType.type}${wagonType.class ? '-' + wagonType.class : ''}`]
 
 /**
  * Prints results of train search
@@ -42,38 +53,38 @@ const printTrainsList = (trains, departureDate, language) => {
       case 0:
         responseText += `${trainLogo(type)} ${trainCount} - ${
           messages[language].passenger
-        }\n`;
+          }\n`;
         break;
       case 1:
         responseText += `${trainLogo(type)} ${trainCount} - ${
           messages[language].intercity
-        }\n`;
+          }\n`;
         break;
       case 2:
         responseText += `${trainLogo(type)} ${trainCount} - ${
           messages[language].transformer
-        }\n`;
+          }\n`;
         break;
       default:
         responseText += `${trainLogo(type)} ${trainCount} - ${
           messages[language].unknownType
-        }\n`;
+          }\n`;
     }
   });
 
   trains.forEach(train => {
     responseText += '\n〰〰〰〰〰〰〰〰\n\n';
-    responseText += `${trainLogo(train.category)} ${train.num} ${
-      train.from.station
-    }-${train.to.station}\n`;
-    responseText += `🕙 ${messages[language].departure} ${train.from.time}\n`;
-    responseText += `🕕 ${messages[language].arrival} ${train.to.time}\n`;
+    responseText += `${trainLogo(train.category)} ${train.number} ${
+      train.from.station_title
+      }-${train.to.station_title}\n`;
+    responseText += `🕙 ${messages[language].departure} ${train.from.date}\n`;
+    responseText += `🕕 ${messages[language].arrival} ${train.to.date}\n`;
     responseText += `⌚️ ${messages[language].inTransit} ${
-      train.travelTime
-    }\n\n`;
+      train.travel_time
+      }\n\n`;
 
-    train.types.forEach(type => {
-      responseText += `🎫  ${type.title}: ${type.places}\n`;
+    train.wagon_types.forEach(type => {
+      responseText += `🎫  ${messages[language][getPlaceType(type)]}: ${type.places}\n`;
     });
   });
 
@@ -92,9 +103,9 @@ const printWatchersList = (watchers, language) => {
   watchers.forEach(watcher => {
     responseText += `⚪️ ${watcher.departureStationName} - ${
       watcher.arrivalStationName
-    }  ${moment(watcher.departureDate).format(
-      'YYYY-MM-DD'
-    )} /stop_watch_${watcher._id.toString()} \n`;
+      }  ${moment(watcher.departureDate).format(
+        'YYYY-MM-DD'
+      )} /stop_watch_${watcher._id.toString()} \n`;
   });
 
   return responseText;
@@ -102,5 +113,5 @@ const printWatchersList = (watchers, language) => {
 
 export default {
   printTrainsList,
-  printWatchersList
+  printWatchersList,
 };

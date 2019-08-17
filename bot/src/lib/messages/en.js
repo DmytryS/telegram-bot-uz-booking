@@ -16,6 +16,12 @@ export default {
   seating1stClass: 'Seating first class',
   seating2ndClass: 'Seating second class',
   seating3dClass: 'Seating third class',
+  BERTH: 'Berth / 3-cl. sleeper',
+  DE_LUXE: 'De Luxe / 1-cl. sleeper',
+  COMPARTMENT: 'Compartment / 2-cl. sleeper',
+  SEATING_1ST_CLASS: 'Seating first class',
+  SEATING_2ND_CLASS: 'Seating second class',
+  SEATING_3D_CLASS: 'Seating third class',
   selectAtLeastOneSeatType: 'Виберіть принаймні один тип сидіння',
   next: '➡️ Next️',
   selectWagonType: 'Select wagon type',
@@ -52,6 +58,6 @@ export default {
     `Currently I'm looking after ${watchersCount} directions`,
   jobStopped: (departureStation, arrivalStation, reason) =>
     `Looking after tickets ${departureStation} - ${arrivalStation} stopped ${reason ||
-      ''}`,
-  alreadyWatching: 'I`m already watching for this direction'
+    ''}`,
+  alreadyWatching: 'I`m already watching for this direction',
 };

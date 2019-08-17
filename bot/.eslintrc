@@ -11,8 +11,14 @@
       "spread": true
     }
   },
-  "extends": ["airbnb-base/legacy", "prettier"],
-  "plugins": ["import", "prettier"],
+  "extends": [
+    "airbnb-base/legacy",
+    "prettier"
+  ],
+  "plugins": [
+    "import",
+    "prettier"
+  ],
   "rules": {
     "quotes": [
       2,
@@ -28,10 +34,17 @@
     "no-underscore-dangle": [
       "error",
       {
-        "allow": ["_id", "_"],
+        "allow": [
+          "_id",
+          "_"
+        ],
         "enforceInMethodNames": false,
         "allowAfterThis": true
       }
-    ]
+    ],
+    "comma-dangle": [
+      "error",
+      "always-multiline"
+    ],
   }
 }
