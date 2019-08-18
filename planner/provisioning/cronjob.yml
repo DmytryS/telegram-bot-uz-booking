@@ -1,4 +1,4 @@
-apiVersion: apps/v1
+apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
   name: planner
@@ -19,3 +19,4 @@ spec:
                 name: amqp
             - configMapRef:
                 name: mongo
+          restartPolicy: OnFailure

@@ -29,7 +29,7 @@ const findActiveJobs = async () => {
       }
 
       // eslint-disable-next-line
-      await queue.publish(
+      await amqp.publish(
         notification.type === 'EXPIRATION'
           ? process.env.NOTIFICATIONS_QUEUE
           : process.env.WORKER_QUEUE,
