@@ -59,6 +59,6 @@ bot.hears(/\/stop_watch_(.*)/, commands.stopWatch)
 bot.start(commands.start)
 bot.help(commands.help)
 bot.catch(err => {
-  logger.error('An error occured in app', err)
+  logger.error(`An error occured in app ${JSON.stringify(err)}`)
 })
 bot.startPolling()

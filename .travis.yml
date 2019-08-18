@@ -46,5 +46,5 @@ script:
   # - kubectl --namespace=$KUBE_NAMESPACE delete pod $KUBE_WATCHER_APP_NAME --cascade=true --ignore-not-found=true
   # - kubectl --namespace=$KUBE_NAMESPACE run --generator=run-pod/v1 --image=$DOCKER_WATCHER_REPO:$TAG $KUBE_WATCHER_APP_NAME --env="MONGODB_URI=${MONGODB_URI}" --env="RABBIT_MQ_URI=${RABBIT_MQ_URI}" --env="RABBIT_RECONNECT_INTERVAL=${RABBIT_RECONNECT_INTERVAL}" --env="NOTIFICATIONS_QUEUE=${NOTIFICATIONS_QUEUE}" --env="WORKER_QUEUE=${WORKER_QUEUE}"
   - kubectl set image deployment/bot bot=${DOCKER_BOT_REPO}:${TAG} -n ${KUBE_NAMESPACE}
-  - kubectl set image cronjob/planner planner=${DOCKER_PLANER_REPO}:${TAG} -n ${KUBE_NAMESPACE}
   - kubectl set image deployment/watcher watcher=${DOCKER_WATCHER_REPO}:${TAG} -n ${KUBE_NAMESPACE}
+  - kubectl set image cronjob/planner planner=${DOCKER_PLANER_REPO}:${TAG} -n ${KUBE_NAMESPACE}
