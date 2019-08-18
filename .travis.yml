@@ -7,10 +7,10 @@ services:
 branches:
   only:
     - master
-install:
-  - npm install --prefix ./bot
-  - npm install --prefix ./planner
-  - npm install --prefix ./watcher
+# install:
+#   - npm install --prefix ./bot
+#   - npm install --prefix ./planner
+#   - npm install --prefix ./watcher
 before_script:
   - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
   - curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
@@ -26,15 +26,18 @@ before_script:
   - kubectl config set-context $KUBE_CLUSTER_CONTEXT --user=$KUBE_CLUSTER_USERNAME --namespace=default --cluster=$KUBE_CLUSTER_NAME
   - kubectl config use-context $KUBE_CLUSTER_CONTEXT
 script:
-  - npm run lint --prefix ./bot
-  - npm run lint --prefix ./planner
-  - npm run lint --prefix ./watcher
+  # - npm run lint --prefix ./bot
+  # - npm run lint --prefix ./planner
+  # - npm run lint --prefix ./watcher
   - export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo ${TRAVIS_COMMIT::8} ; fi`
   - docker build -t $DOCKER_BOT_REPO:$TAG ./bot/
+  - docker run $DOCKER_BOT_REPO:$TAG run lint
   - docker push $DOCKER_BOT_REPO:$TAG
   - docker build -t $DOCKER_PLANER_REPO:$TAG ./planner/
+  - docker run $DOCKER_PLANER_REPO:$TAG run lint
   - docker push $DOCKER_PLANER_REPO:$TAG
   - docker build -t $DOCKER_WATCHER_REPO:$TAG ./watcher/
+  - docker run $DOCKER_WATCHER_REPO:$TAG run lint
   - docker push $DOCKER_WATCHER_REPO:$TAG
   # - kubectl --namespace=$KUBE_NAMESPACE delete pod $KUBE_BOT_APP_NAME --cascade=true --ignore-not-found=true
   # - kubectl --namespace=$KUBE_NAMESPACE run --generator=run-pod/v1 --image=$DOCKER_BOT_REPO:$TAG $KUBE_BOT_APP_NAME --env="BOT_TOKEN=${BOT_TOKEN}" --env="MONGODB_URI=${MONGODB_URI}" --env="RABBIT_MQ_URI=${RABBIT_MQ_URI}" --env="RABBIT_RECONNECT_INTERVAL=${RABBIT_RECONNECT_INTERVAL}" --env="NOTIFICATIONS_QUEUE=${NOTIFICATIONS_QUEUE}" --env="WORKER_QUEUE=${WORKER_QUEUE}"
@@ -42,6 +45,6 @@ script:
   # - kubectl --namespace=$KUBE_NAMESPACE run --generator=run-pod/v1 --image=$DOCKER_PLANER_REPO:$TAG $KUBE_PLANNER_APP_NAME --env="MONGODB_URI=${MONGODB_URI}" --env="RABBIT_MQ_URI=${RABBIT_MQ_URI}" --env="RABBIT_RECONNECT_INTERVAL=${RABBIT_RECONNECT_INTERVAL}" --env="NOTIFICATIONS_QUEUE=${NOTIFICATIONS_QUEUE}" --env="WORKER_QUEUE=${WORKER_QUEUE}" --env="JOBS_CHECK_INTERVAL=${JOBS_CHECK_INTERVAL}"
   # - kubectl --namespace=$KUBE_NAMESPACE delete pod $KUBE_WATCHER_APP_NAME --cascade=true --ignore-not-found=true
   # - kubectl --namespace=$KUBE_NAMESPACE run --generator=run-pod/v1 --image=$DOCKER_WATCHER_REPO:$TAG $KUBE_WATCHER_APP_NAME --env="MONGODB_URI=${MONGODB_URI}" --env="RABBIT_MQ_URI=${RABBIT_MQ_URI}" --env="RABBIT_RECONNECT_INTERVAL=${RABBIT_RECONNECT_INTERVAL}" --env="NOTIFICATIONS_QUEUE=${NOTIFICATIONS_QUEUE}" --env="WORKER_QUEUE=${WORKER_QUEUE}"
-  - kubectl set image ${KUBE_NAMESPACE}/bot bot=${DOCKER_BOT_REPO}:${TAG} -n ${KUBE_NAMESPACE}
-  - kubectl set image ${KUBE_NAMESPACE}/planner planner=${DOCKER_PLANER_REPO}:${TAG} -n ${KUBE_NAMESPACE}
-  - kubectl set image ${KUBE_NAMESPACE}/watcher watcher=${DOCKER_WATCHER_REPO}:${TAG} -n ${KUBE_NAMESPACE}
+  - kubectl set image deployment/bot bot=${DOCKER_BOT_REPO}:${TAG} -n ${KUBE_NAMESPACE}
+  - kubectl set image deployment/planner planner=${DOCKER_PLANER_REPO}:${TAG} -n ${KUBE_NAMESPACE}
+  - kubectl set image deployment/watcher watcher=${DOCKER_WATCHER_REPO}:${TAG} -n ${KUBE_NAMESPACE}

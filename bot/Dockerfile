@@ -10,4 +10,8 @@ FROM base AS release
 COPY --from=dependencies /usr/src/app/node_modules ./node_modules
 COPY --from=dependencies /usr/src/app/src ./src
 RUN rm -f package-lock.json
-CMD ["npm", "start"]
+
+USER node
+
+CMD ["start"]
+ENTRYPOINT ["npm"]
