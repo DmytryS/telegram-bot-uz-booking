@@ -4,7 +4,6 @@ import logger from './logger.js';
 
 export class Queue {
   constructor() {
-    // logger = logger.getLogger('AMQP');
     this._connection = false;
     this._channel = false;
   }
@@ -142,7 +141,6 @@ export class Queue {
     });
     await this.channel.publish(exchangeName, '', Buffer.from(message));
 
-    // this.logger.info('Message published: ', exchangeName, message);
   }
 
   async subscribe(exchangeName, exchangeType) {

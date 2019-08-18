@@ -1,4 +1,4 @@
-import { User } from '../models/index.js';
+import User from '../models/user.js';
 
 const getUserLanguage = async (ctx, next) => {
   if (!ctx.session.language) {

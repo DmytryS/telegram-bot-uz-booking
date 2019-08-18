@@ -1,8 +1,8 @@
 import UzClient from 'uz-booking-client';
 import moment from 'moment';
-import { queue, logger } from '../services/index.js';
+import { amqp, logger } from '../lib/index.js';
 import { Job } from '../models/index.js';
-import messages from './messages/index.js';
+import messages from '../assets/messages/index.js';
 import { print } from '../utils/index.js';
 
 export default class JobsHandler {
@@ -13,9 +13,9 @@ export default class JobsHandler {
 
   async subscribeToQueue(queueName) {
     try {
-      await queue.start();
+      await amqp.start();
 
-      const subscribeEmmitter = await queue.subscribe(queueName, 'fanout');
+      const subscribeEmmitter = await amqp.subscribe(queueName, 'fanout');
 
       subscribeEmmitter.on('data', async data => {
         try {

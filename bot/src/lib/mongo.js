@@ -1,7 +1,6 @@
 import mongoose from 'mongoose';
 import logger from './logger.js';
 
-// const dbLogger = logger.getLogger('DB');
 const options = {
   useCreateIndex: true,
   useNewUrlParser: true,

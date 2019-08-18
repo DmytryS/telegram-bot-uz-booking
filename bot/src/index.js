@@ -4,8 +4,9 @@ import Stage from 'telegraf/stage.js';
 import telegrafSession from 'telegraf/session.js';
 import Calendar from 'telegraf-calendar-telegram';
 import EventEmitter from 'events';
-import { logger } from './services/index.js';
-import { botHandler, scenes, middlewares, JobHandler } from './lib/index.js';
+import { middlewares, JobHandler, logger } from './lib/index.js';
+import * as scenes from './scenes/index.js'
+import * as commands from './commands/index.js'
 
 // const appLogger = logger.getLogger('BotApp');
 const bot = new Telegraf(process.env.BOT_TOKEN);
@@ -41,22 +42,22 @@ bot.use(telegrafSession());
 bot.use(stage.middleware());
 bot.use(middlewares.getUserLanguage);
 
-bot.command('finddirecttickets', botHandler.findDirectTickets);
-bot.command('findinterchangetickets', botHandler.findInterchangeTickets);
-bot.command('setlanguage', botHandler.setLanguage);
-bot.command('getwatchers', botHandler.getWatchers);
-bot.command('stop', botHandler.stop);
-bot.command('help', botHandler.help);
+bot.command('finddirecttickets', commands.findDirectTickets);
+bot.command('findinterchangetickets', commands.findInterchangeTickets);
+bot.command('setlanguage', commands.setLanguage);
+bot.command('getwatchers', commands.getWatchers);
+bot.command('stop', commands.stop);
+bot.command('help', commands.help);
 
-bot.action('FIND_DIRECT_TICKETS', botHandler.findDirectTickets);
-bot.action('SET_LANGUAGE', botHandler.setLanguage);
-bot.action('GET_WATCHERS', botHandler.getWatchers);
-bot.action('HELP', botHandler.help);
+bot.action('FIND_DIRECT_TICKETS', commands.findDirectTickets);
+bot.action('SET_LANGUAGE', commands.setLanguage);
+bot.action('GET_WATCHERS', commands.getWatchers);
+bot.action('HELP', commands.help);
 
-bot.hears(/\/stop_watch_(.*)/, botHandler.stopWatch);
+bot.hears(/\/stop_watch_(.*)/, commands.stopWatch);
 
-bot.start(botHandler.start);
-bot.help(botHandler.help);
+bot.start(commands.start);
+bot.help(commands.help);
 bot.catch(err => {
   logger.error('An error occured in app', err);
 });

@@ -1,6 +1,6 @@
 import 'dotenv/config.js';
 import moment from 'moment-timezone';
-import { logger, queue } from './services/index.js';
+import { logger, amqp } from './lib/index.js';
 import { Job } from './models/index.js';
 
 const pushToQueue = async () => {
@@ -42,7 +42,7 @@ const pushToQueue = async () => {
   }
 };
 
-queue.start().then(() => {
+amqp.start().then(() => {
   logger.info('Planner is up');
 });
 

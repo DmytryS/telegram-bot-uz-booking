@@ -1,5 +1,5 @@
 import moment from 'moment';
-import { messages } from '../lib/index.js';
+import messages from '../assets/messages/index.js';
 
 const trainLogo = category => {
   switch (category) {

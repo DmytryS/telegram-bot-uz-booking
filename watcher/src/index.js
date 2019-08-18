@@ -2,8 +2,8 @@ import 'dotenv/config.js';
 import moment from 'moment';
 import UzClient from 'uz-booking-client';
 import _ from 'underscore';
-import { logger, queue } from './services/index.js';
-import { Job } from './models/index.js';
+import { logger, amqp } from './lib/index.js';
+import Job from './models/job.js';
 
 const seatNames = {
   en: {
@@ -34,7 +34,7 @@ const seatNames = {
 
 const subscribeJobs = async () => {
   try {
-    const subscribeEmmitter = await queue.subscribe(
+    const subscribeEmmitter = await amqp.subscribe(
       process.env.WORKER_QUEUE,
       'fanout'
     );
@@ -81,7 +81,7 @@ const subscribeJobs = async () => {
 
               logger.info(`Found tickets for job with id ${jobId}`);
 
-              await queue.publish(
+              await amqp.publish(
                 process.env.NOTIFICATIONS_QUEUE,
                 'fanout',
                 JSON.stringify(notification)
@@ -108,7 +108,7 @@ const subscribeJobs = async () => {
   }
 };
 
-queue.start().then(() => {
+amqp.start().then(() => {
   subscribeJobs();
   logger.info('Watcher is up');
 });
