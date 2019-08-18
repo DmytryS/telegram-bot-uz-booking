@@ -2,6 +2,49 @@ import amqp from 'amqplib'
 import logger from './logger.js'
 import EventEmitter from 'events'
 
+const RETRIES = 5
+let counter = 0
+
+const connections = {
+  connection: false,
+  channel: false
+}
+
+const connect = new Promise((req, res) => {
+  setInterval(
+    async function () {
+      counter++
+      logger.info(`[AMQP] Trying to connect ${process.env.RABBIT_MQ_URI}`)
+      try {
+        connections.connection = await amqp.connect(process.env.RABBIT_MQ_URI)
+
+        logger.info('[AMQP] creating channel')
+
+        connections.channel = await connections.connection.createChannel()
+
+        logger.info(`[AMQP] connected ${process.env.RABBIT_MQ_URI}`)
+
+        res()
+      } catch (err) {
+        logger.error(`[AMQP] ERROR: ${JSON.stringify(err)}`)
+
+        if (counter >= RETRIES) {
+          clearInterval(this)
+        }
+      }
+    },
+    process.env.RABBIT_RECONNECT_INTERVAL
+  )
+})
+
+// eslint-disable-next-line
+export const listen = async (queue, cb) => {
+  if (!connections.connection) {
+    await connect()
+  }
+
+}
+
 export class Queue {
   constructor() {
     this._connection = false

@@ -5,6 +5,17 @@ import Job from './models/job.js'
 
 const findActiveJobs = async () => {
   try {
+
+    // await amqp.publish(
+    //   notification.type === 'EXPIRATION'
+    //     ? process.env.NOTIFICATIONS_QUEUE
+    //     : process.env.WORKER_QUEUE,
+    //   'fanout',
+    //   JSON.stringify(notification)
+    // )
+    // amqp.listen(process.env.NOTIFICATIONS_QUEUE, () => { })
+
+
     const jobs = await Job.find({
       status: 'ACTIVE'
     })
@@ -42,9 +53,12 @@ const findActiveJobs = async () => {
   }
 }
 
-amqp.start().then(async () => {
-  logger.info('Planner is up')
-  await findActiveJobs()
+// amqp.start().then(async () => {
+//   logger.info('Planner is up')
+//   await findActiveJobs()
 
-  await amqp.stop()
-})
+//   await amqp.stop()
+// })
+
+// amqp.listen()
+findActiveJobs()
