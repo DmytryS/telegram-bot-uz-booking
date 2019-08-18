@@ -1,4 +1,4 @@
-import winston from 'winston';
+import winston from 'winston'
 
 const logger = winston.createLogger({
   level: process.env.NODE_ENV === 'development' ? 'debug' : 'info',
@@ -10,6 +10,6 @@ const logger = winston.createLogger({
     winston.format.printf((info) => `${info.timestamp} [${info.level}]: ${info.message}`),
   ),
   transports: [new winston.transports.Console()],
-});
+})
 
-export default logger;
+export default logger

@@ -1,1 +1,1 @@
-export { default as messages } from './messages/index.js';
+export { default as messages } from './messages/index.js'

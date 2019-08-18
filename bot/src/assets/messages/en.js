@@ -4,7 +4,7 @@ export default {
   enterDepartureStation: 'Enter departure station',
   enterArrivalStation: 'Enter arrival station',
   errorOccured: '❌ Error occured',
-  stationNotExists: "Station doesn't exists",
+  stationNotExists: 'Station doesn\'t exists',
   choseStation: 'Chose station',
   choseDepartureDate: 'Chose departure date',
   departure: 'departure',
@@ -60,4 +60,4 @@ export default {
     `Looking after tickets ${departureStation} - ${arrivalStation} stopped ${reason ||
     ''}`,
   alreadyWatching: 'I`m already watching for this direction',
-};
+}

@@ -1,3 +1,3 @@
-const setLanguage = ctx => ctx.scene.enter('setlanguage');
+const setLanguage = ctx => ctx.scene.enter('setlanguage')
 
-export default setLanguage;
+export default setLanguage

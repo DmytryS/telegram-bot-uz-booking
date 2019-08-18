@@ -1,19 +1,19 @@
-import 'dotenv/config.js';
-import moment from 'moment-timezone';
-import { logger, amqp } from './lib/index.js';
-import { Job } from './models/index.js';
+import 'dotenv/config.js'
+import moment from 'moment-timezone'
+import { logger, amqp } from './lib/index.js'
+import Job from './models/job.js'
 
-const pushToQueue = async () => {
+const findActiveJobs = async () => {
   try {
     const jobs = await Job.find({
       status: 'ACTIVE'
-    });
+    })
 
     // eslint-disable-next-line
     for (let job of jobs) {
       const notification = {
         jobId: job._id.toString()
-      };
+      }
 
       if (
         moment(job.departureDate, 'YYYY-MM-DD')
@@ -25,7 +25,7 @@ const pushToQueue = async () => {
         // eslint-disable-next-line
         await job.markAsExpired();
 
-        notification.type = 'EXPIRATION';
+        notification.type = 'EXPIRATION'
       }
 
       // eslint-disable-next-line
@@ -35,15 +35,16 @@ const pushToQueue = async () => {
           : process.env.WORKER_QUEUE,
         'fanout',
         JSON.stringify(notification)
-      );
+      )
     }
   } catch (error) {
-    logger.error(error);
+    logger.error(error)
   }
-};
+}
 
-amqp.start().then(() => {
-  logger.info('Planner is up');
-});
+amqp.start().then(async () => {
+  logger.info('Planner is up')
+  await findActiveJobs()
 
-setInterval(pushToQueue, process.env.JOBS_CHECK_INTERVAL);
+  await amqp.stop()
+})

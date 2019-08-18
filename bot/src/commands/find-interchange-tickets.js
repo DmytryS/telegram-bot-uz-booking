@@ -1,6 +1,6 @@
 const findInterchangeTickets = ctx => {
-    ctx.session.ticketSearchType = 'INTERCHANGE';
-    ctx.scene.enter('selectDepartureStation');
-};
+  ctx.session.ticketSearchType = 'INTERCHANGE'
+  ctx.scene.enter('selectDepartureStation')
+}
 
-export default findInterchangeTickets;
+export default findInterchangeTickets

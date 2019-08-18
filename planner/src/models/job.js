@@ -1,10 +1,10 @@
-import mongoose from 'mongoose';
+import mongoose from 'mongoose'
 
 const statusTypes = {
   values: ['ACTIVE', 'COMPLETED', 'EXPIRED', 'CANCELED', 'FAILED'],
   message:
-    "Value must be either of 'ACTIVE', 'COMPLETED', 'EXPIRED', 'CANCELED', 'FAILED'"
-};
+    'Value must be either of \'ACTIVE\', \'COMPLETED\', \'EXPIRED\', \'CANCELED\', \'FAILED\''
+}
 
 const ticketTypes = {
   values: [
@@ -16,11 +16,11 @@ const ticketTypes = {
     'SEATING_3D_CLASS'
   ],
   message:
-    "Value must be either of 'BERTH', 'DE_LUXE', 'COMPARTMENT', 'SEATING_1ST_CLASS', 'SEATING_2ND_CLASS' ,'SEATING_3D_CLASS'"
-};
+    'Value must be either of \'BERTH\', \'DE_LUXE\', \'COMPARTMENT\', \'SEATING_1ST_CLASS\', \'SEATING_2ND_CLASS\' ,\'SEATING_3D_CLASS\''
+}
 
-const { Schema } = mongoose;
-const { ObjectId } = Schema;
+const { Schema } = mongoose
+const { ObjectId } = Schema
 const jobSchema = new Schema(
   {
     chatId: {
@@ -73,35 +73,35 @@ const jobSchema = new Schema(
   {
     timestamps: true
   }
-);
+)
 
 class Job {
   async markAsSucceded() {
-    this.status = 'COMPLETED';
+    this.status = 'COMPLETED'
 
-    return this.save();
+    return this.save()
   }
 
   async markAsExpired() {
-    this.status = 'EXPIRED';
+    this.status = 'EXPIRED'
 
-    return this.save();
+    return this.save()
   }
 
   async markAsCanceled() {
-    this.status = 'CANCELED';
+    this.status = 'CANCELED'
 
-    return this.save();
+    return this.save()
   }
 
   async markAsFailed() {
-    this.status = 'FAILED';
+    this.status = 'FAILED'
 
-    return this.save();
+    return this.save()
   }
 
   isActive() {
-    return this.status === 'ACTIVE';
+    return this.status === 'ACTIVE'
   }
 
   static async markAsCanceledForUser(userId) {
@@ -113,12 +113,12 @@ class Job {
       {
         status: 'CANCELED'
       }
-    );
+    )
   }
 }
 
-jobSchema.loadClass(Job);
+jobSchema.loadClass(Job)
 
-delete mongoose.connection.models.Job;
+delete mongoose.connection.models.Job
 
-export default mongoose.model('Job', jobSchema);
+export default mongoose.model('Job', jobSchema)

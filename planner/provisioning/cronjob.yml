@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: CronJob
+metadata:
+  name: planner
+  labels:
+    app: planner
+spec:
+  schedule: '*/2 * * * *'
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: planner
+            image: loginkr/uz-booking-planner:latest
+            imagePullPolicy: Always
+            envFrom:
+            - configMapRef:
+                name: amqp
+            - configMapRef:
+                name: mongo

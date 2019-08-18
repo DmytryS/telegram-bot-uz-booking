@@ -1,10 +1,10 @@
-import mongoose from 'mongoose';
+import mongoose from 'mongoose'
 
-const { Schema } = mongoose;
+const { Schema } = mongoose
 const languages = {
   values: ['en', 'ru', 'uk'],
-  message: "Status must be either of 'en', 'ru', 'uk'"
-};
+  message: 'Status must be either of \'en\', \'ru\', \'uk\''
+}
 const userSchema = new Schema(
   {
     telegramId: {
@@ -36,18 +36,18 @@ const userSchema = new Schema(
   {
     timestamps: true
   }
-);
+)
 
 class User {
   async stopBot() {
-    this.botEnabled = false;
+    this.botEnabled = false
 
-    return this.save();
+    return this.save()
   }
 }
 
-userSchema.loadClass(User);
+userSchema.loadClass(User)
 
-delete mongoose.connection.models.User;
+delete mongoose.connection.models.User
 
-export default mongoose.model('User', userSchema);
+export default mongoose.model('User', userSchema)
