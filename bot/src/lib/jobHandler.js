@@ -1,83 +1,65 @@
 import UzClient from 'uz-booking-client'
 import moment from 'moment'
-import { amqp, logger } from '../lib/index.js'
-import { Job } from '../models/index.js'
+import logger from '../lib/logger.js'
+import Job from '../models/job.js'
 import messages from '../assets/messages/index.js'
 import { print } from '../utils/index.js'
+import { inspect } from 'util'
 
-export default class JobsHandler {
-  constructor(bot) {
-    // logger = logger.getLogger('JobHandler');
-    this.bot = bot
-  }
+export const jobHandler = bot => async message => {
+  try {
+    logger.info(`[JobHandler] Received message: ${inspect(message, { colors: true, depth: 4 })}`)
+    let { jobId, type } = JSON.parse(message)
 
-  async subscribeToQueue(queueName) {
-    try {
-      await amqp.start()
+    const job = await Job.findById(jobId).populate('user')
+    const uzClient = new UzClient.ApiV2(job.user.language)
 
-      const subscribeEmmitter = await amqp.subscribe(queueName, 'fanout')
+    let botMessage = false
+    let response
+    let trains
 
-      subscribeEmmitter.on('data', async data => {
-        try {
-          logger.info('Received message:', data)
-          let { jobId, type } = JSON.parse(data)
+    switch (type) {
+      case 'FAILED':
+      case 'EXPIRATION':
+        botMessage = messages[job.user.language].watcherDidnotFoundTicket
+        break
+      case 'FOUND':
+        response = await uzClient.Train.find(
+          job.departureStationId,
+          job.arrivalStationId,
+          moment(job.departureDate).format('YYYY-MM-DD'),
+          '00:00:00'
+        )
 
-          const job = await Job.findById(jobId).populate('user')
-          const uzClient = new UzClient.ApiV2(job.user.language)
-
-          let message = false
-          let response
-          let trains
-
-          switch (type) {
-            case 'FAILED':
-            case 'EXPIRATION':
-              message = messages[job.user.language].watcherDidnotFoundTicket
-              break
-            case 'FOUND':
-              response = await uzClient.Train.find(
-                job.departureStationId,
-                job.arrivalStationId,
-                moment(job.departureDate).format('YYYY-MM-DD'),
-                '00:00:00'
-              )
-
-              if (
-                !response ||
-                (response.data.data && !response.data.data.trains)
-              ) {
-                throw new Error(JSON.stringify(response.data.data))
-              }
-
-              trains = response.data.data.trains.filter(
-                train => train.wagon_types.length > 0
-              )
-
-              if (trains.length > 0) {
-                message = messages[job.user.language].watcherFoundTicket + '\n'
-                message += print.printTrainsList(
-                  trains,
-                  moment(job.departureDate).format('YYYY-MM-DD'),
-                  job.user.language
-                )
-              }
-              break
-            default:
-              logger.error(`Unexpected data ${data}`)
-              break
-          }
-
-          if (message) {
-            this.bot.telegram.sendMessage(job.chatId, message)
-          }
-        } catch (error) {
-          logger.error(error)
+        if (
+          !response ||
+          (response.data.data && !response.data.data.trains)
+        ) {
+          throw new Error(JSON.stringify(response.data.data))
         }
-      })
 
-      subscribeEmmitter.on('error', error => logger.error(error))
-    } catch (error) {
-      logger.error(error)
+        trains = response.data.data.trains.filter(
+          train => train.wagon_types.length > 0
+        )
+
+        if (trains.length > 0) {
+          botMessage = messages[job.user.language].watcherFoundTicket + '\n'
+          botMessage += print.printTrainsList(
+            trains,
+            moment(job.departureDate).format('YYYY-MM-DD'),
+            job.user.language
+          )
+        }
+        break
+      default:
+        logger.error(`[JobHandler] Unexpected data ${inspect(message, { colors: true, depth: 4 })}`)
+        break
     }
+
+    if (botMessage) {
+      bot.telegram.sendMessage(job.chatId, botMessage)
+    }
+  } catch (error) {
+    logger.error(`[JobHandler] Error:${inspect(error, { colors: true, depth: 4 })}`)
   }
 }

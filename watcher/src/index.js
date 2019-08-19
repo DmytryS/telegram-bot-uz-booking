@@ -32,83 +32,59 @@ const seatNames = {
   }
 }
 
-const subscribeJobs = async () => {
-  try {
-    const subscribeEmmitter = await amqp.subscribe(
-      process.env.WORKER_QUEUE,
-      'fanout'
-    )
+const findTicket = async (message) => {
+  logger.info('Received message:', message)
 
-    subscribeEmmitter.on('data', async data => {
-      logger.info('Received message:', data)
+  const { jobId } = JSON.parse(message)
+  const job = await Job.findById(jobId).populate('user')
+  let notification = { jobId }
 
-      const { jobId } = JSON.parse(data)
-      const job = await Job.findById(jobId).populate('user')
-      let notification = { jobId }
+  if (job) {
+    try {
+      const uzClient = new UzClient(job.user.language || 'en')
 
-      if (job) {
-        try {
-          const uzClient = new UzClient(job.user.language || 'en')
+      const response = await uzClient.Train.find(
+        job.departureStationId,
+        job.arrivalStationId,
+        moment(job.departureDate).format('YYYY-MM-DD'),
+        '00:00'
+      )
 
-          const response = await uzClient.Train.find(
-            job.departureStationId,
-            job.arrivalStationId,
-            moment(job.departureDate).format('YYYY-MM-DD'),
-            '00:00'
-          )
+      if (!response || (response.data.data && !response.data.data.list)) {
+        throw new Error(JSON.stringify(response.data.data))
+      }
 
-          if (!response || (response.data.data && !response.data.data.list)) {
-            throw new Error(JSON.stringify(response.data.data))
-          }
+      const trains = response.data.data.list.filter(
+        train => train.types.length > 0
+      )
 
-          const trains = response.data.data.list.filter(
-            train => train.types.length > 0
-          )
-
-          if (trains.length > 0) {
-            const trainsContainSeatType = trains.some(train =>
-              train.types.some(seat =>
-                job.ticketTypes.includes(
-                  _.invert(seatNames[job.user.language || 'en'])[seat.title]
-                )
-              )
+      if (trains.length > 0) {
+        const trainsContainSeatType = trains.some(train =>
+          train.types.some(seat =>
+            job.ticketTypes.includes(
+              _.invert(seatNames[job.user.language || 'en'])[seat.title]
             )
+          )
+        )
 
-            if (trainsContainSeatType) {
-              notification.type = 'FOUND'
+        if (trainsContainSeatType) {
+          notification.type = 'FOUND'
 
-              await job.markAsSucceded()
+          await job.markAsSucceded()
 
-              logger.info(`Found tickets for job with id ${jobId}`)
+          logger.info(`Found tickets for job with id ${jobId}`)
 
-              await amqp.publish(
-                process.env.NOTIFICATIONS_QUEUE,
-                'fanout',
-                JSON.stringify(notification)
-              )
-            }
-          }
-        } catch (error) {
-          // await job.markAsFailed();
-          // notification.type = 'FAILED';
-          // await queue.publish(
-          //   process.env.NOTIFICATIONS_QUEUE,
-          //   'fanout',
-          //   JSON.stringify(notification)
-          // );
-
-          logger.error(error)
+          await amqp.publish(
+            process.env.NOTIFICATIONS_QUEUE,
+            'fanout',
+            JSON.stringify(notification)
+          )
         }
       }
-    })
-
-    subscribeEmmitter.on('error', error => logger.error(error))
-  } catch (error) {
-    logger.error(error)
+    } catch (error) {
+      logger.error(error)
+    }
   }
 }
 
-amqp.start().then(() => {
-  subscribeJobs()
-  logger.info('Watcher is up')
-})
+amqp.listen(process.env.WORKER_QUEUE, findTicket)

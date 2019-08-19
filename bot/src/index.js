@@ -4,7 +4,7 @@ import Stage from 'telegraf/stage.js'
 import telegrafSession from 'telegraf/session.js'
 import Calendar from 'telegraf-calendar-telegram'
 import EventEmitter from 'events'
-import { middlewares, JobHandler, logger } from './lib/index.js'
+import { middlewares, jobHandler, logger, amqp } from './lib/index.js'
 import * as scenes from './scenes/index.js'
 import * as commands from './commands/index.js'
 
@@ -14,9 +14,7 @@ const bot = new Telegraf(process.env.BOT_TOKEN)
 export const dateSelectEmitter = new EventEmitter()
 export const calendar = new Calendar(bot)
 
-const jobHandler = new JobHandler(bot)
-
-jobHandler.subscribeToQueue(process.env.NOTIFICATIONS_QUEUE)
+amqp.listen(process.env.NOTIFICATIONS_QUEUE, jobHandler(bot))
 
 calendar.setDateListener((context, date) => {
   dateSelectEmitter.emit(

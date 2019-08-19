@@ -40,13 +40,14 @@ const findActiveJobs = async () => {
       }
 
       // eslint-disable-next-line
-      await amqp.publish(
+      await amqp.send(
         notification.type === 'EXPIRATION'
           ? process.env.NOTIFICATIONS_QUEUE
           : process.env.WORKER_QUEUE,
-        'fanout',
         JSON.stringify(notification)
       )
+
+      await amqp.disconnect()
     }
   } catch (error) {
     logger.error(error)

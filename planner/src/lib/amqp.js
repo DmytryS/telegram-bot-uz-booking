@@ -1,13 +1,18 @@
 import amqp from 'amqplib'
 import logger from './logger.js'
-import EventEmitter from 'events'
 
 const RETRIES = 5
 let counter = 0
 
-const connections = {
+const CONNECTIONS = {
   connection: false,
   channel: false
+}
+
+const onError = (err) => {
+  if (err.message !== 'Connection closing') {
+    logger.info(`[AMQP] ERROR: ${err.message}`)
+  }
 }
 
 const connect = new Promise((req, res) => {
@@ -16,11 +21,13 @@ const connect = new Promise((req, res) => {
       counter++
       logger.info(`[AMQP] Trying to connect ${process.env.RABBIT_MQ_URI}`)
       try {
-        connections.connection = await amqp.connect(process.env.RABBIT_MQ_URI)
+        CONNECTIONS.connection = await amqp.connect(process.env.RABBIT_MQ_URI)
 
         logger.info('[AMQP] creating channel')
 
-        connections.channel = await connections.connection.createChannel()
+        CONNECTIONS.channel = await CONNECTIONS.connection.createChannel()
+
+        CONNECTIONS.connection.on('error', onError)
 
         logger.info(`[AMQP] connected ${process.env.RABBIT_MQ_URI}`)
 
@@ -38,183 +45,51 @@ const connect = new Promise((req, res) => {
 })
 
 // eslint-disable-next-line
-export const listen = async (queue, cb) => {
-  if (!connections.connection) {
+export const listen = async (queue, callback) => {
+  if (!CONNECTIONS.connection) {
     await connect()
   }
 
-}
-
-export class Queue {
-  constructor() {
-    this._connection = false
-    this._channel = false
-  }
-
-  get connection() {
-    return this._connection
-  }
-
-  get channel() {
-    return this._channel
-  }
-
-  async start() {
-    await this._initChannel()
-  }
-
-  async stop() {
-    await this._closeChannel()
-    await this._closeConnection()
-  }
-
-  async _getConnection() {
-    let conn = this.connection
-
-    while (!conn) {
-      logger.info('Trying to connect RabbitMQ')
-      try {
-        // eslint-disable-next-line
-        conn = await amqp.connect(process.env.RABBIT_MQ_URI);
-        this.connection = conn
-      } catch (_) {
-        // eslint-disable-next-line
-        await new Promise(resolve =>
-          setTimeout(resolve, process.env.RABBIT_RECONNECT_INTERVAL)
-        )
-      }
-      if (conn) {
-        logger.info('Connected to RabbitMQ')
-        // this.connection.on('close', this._onClose);
-        // this.connection.on('error', this._onError);
-      }
-    }
-
-    return conn
-  }
-
-  /**
-   * Closes connection
-   */
-  async _closeConnection() {
-    if (!this.connection) {
-      return
-    }
-    await this.connection.close()
-  }
-
-  async _initChannel() {
-    if (this.channel) {
-      return
-    }
-    const connection = await this._getConnection()
-    const channel = await connection.createChannel()
-    this._channel = channel
-  }
-
-  /**
-   * Closes channel
-   */
-  async _closeChannel() {
-    if (!this.channel) {
-      return
-    }
-    await this.channel.close()
-  }
-
-  _onClose() {
-    logger.info('Connected to RabbitMQ')
-
-    logger.info('Reconnecting')
-    return setTimeout(
-      this._getConnection,
-      process.env.RABBIT_RECONNECT_INTERVAL
-    )
-  }
-
-  // eslint-disable-next-line
-  _onError(err) {
-    if (err.message !== 'Connection closing') {
-      logger.info('Connection error', err.message)
-    }
-  }
-
-  async produce(queue, message, durable = false, persistent = false) {
-    await this.channel.assertQueue(queue, { durable })
-    await this.channel.sendToQueue(queue, Buffer.from(message), {
-      persistent
-    })
-
-    // this.logger.info('Message produced: ', queue, message);
-  }
-
-  async consume(queue, isNoAck = false, durable = false, prefetch = null) {
-    await this.channel.assertQueue(queue, { durable })
-
-    if (prefetch) {
-      this.channel.prefetch(prefetch)
-    }
-    const consumeEmitter = new EventEmitter()
-    try {
-      this.channel.consume(
-        queue,
-        message => {
-          if (message !== null) {
-            consumeEmitter.emit('data', message.content.toString(), () =>
-              this.channel.ack(message)
-            )
-          } else {
-            const error = new Error('NullMessageException')
-            consumeEmitter.emit('error', error)
-          }
-        },
-        { noAck: isNoAck }
-      )
-    } catch (error) {
-      logger.error(`Consume error occured: ${error}`)
-      consumeEmitter.emit('error', error)
-    }
-    return consumeEmitter
-  }
-
-  async publish(exchangeName, exchangeType, message) {
-    await this.channel.assertExchange(exchangeName, exchangeType, {
+  await CONNECTIONS.channel.assertQueue(
+    queue,
+    {
       durable: false
-    })
-    await this.channel.publish(exchangeName, '', Buffer.from(message))
+    }
+  )
 
-    // this.logger.info('Message published: ', exchangeName, message);
-  }
-
-  async subscribe(exchangeName, exchangeType) {
-    await this.channel.assertExchange(exchangeName, exchangeType, {
-      durable: false
-    })
-    const queue = await this.channel.assertQueue('', {
-      exclusive: true
-    })
-    this.channel.bindQueue(queue.queue, exchangeName, '')
-    const consumeEmitter = new EventEmitter()
+  CONNECTIONS.channel.consume(queue, async (message) => {
+    let ouputMessage = {}
 
     try {
-      this.channel.consume(
-        queue.queue,
-        message => {
-          if (message !== null) {
-            consumeEmitter.emit('data', message.content.toString())
-          } else {
-            const error = new Error('NullMessageException')
-            consumeEmitter.emit('error', error)
-          }
-        },
-        { noAck: true }
-      )
-    } catch (error) {
-      logger.error(`Subscribe error occured: ${error}`)
-      consumeEmitter.emit('error', error)
+      ouputMessage = await callback(message)
+    } catch (err) {
+      ouputMessage.error = err
     }
-    return consumeEmitter
-  }
+  })
 }
 
-export default new Queue()
+export const publish = () => {
+
+}
+
+export const send = async (queue, message) => {
+  logger.info(`[AMQP] Sending data to ${queue}`)
+
+  await CONNECTIONS.channel.assertQueue(queue, {
+    durable: false
+  })
+
+  await CONNECTIONS.channel.sendToQueue(queue, Buffer.from(message))
+}
+
+export const disconnect = async () => {
+  if (CONNECTIONS.channel) {
+    await CONNECTIONS.channel.disconnect()
+  }
+
+  if (CONNECTIONS.channel) {
+    await CONNECTIONS.connection.disconnect()
+  }
+
+  logger.info(`[AMQP] Disconnected from ${process.env.RABBIT_MQ_URI}`)
+}
