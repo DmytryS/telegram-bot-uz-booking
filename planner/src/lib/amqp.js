@@ -15,7 +15,7 @@ const onError = (err) => {
   }
 }
 
-const connect = new Promise((req, res) => {
+const connect = () => new Promise((req, res) => {
   setInterval(
     async function () {
       counter++
@@ -26,8 +26,8 @@ const connect = new Promise((req, res) => {
         logger.info('[AMQP] creating channel')
 
         CONNECTIONS.channel = await CONNECTIONS.connection.createChannel()
-
         CONNECTIONS.connection.on('error', onError)
+        clearInterval(this)
 
         logger.info(`[AMQP] connected ${process.env.RABBIT_MQ_URI}`)
 
@@ -44,7 +44,6 @@ const connect = new Promise((req, res) => {
   )
 })
 
-// eslint-disable-next-line
 export const listen = async (queue, callback) => {
   if (!CONNECTIONS.connection) {
     await connect()
@@ -68,7 +67,8 @@ export const listen = async (queue, callback) => {
   })
 }
 
-export const publish = () => {
+// eslint-disable-next-line
+export const publish = async (queue, message) => {
 
 }
 

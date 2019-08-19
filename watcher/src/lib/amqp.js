@@ -15,7 +15,7 @@ const onError = (err) => {
   }
 }
 
-const connect = new Promise((req, res) => {
+const connect = () => new Promise((req, res) => {
   setInterval(
     async function () {
       counter++
@@ -26,8 +26,8 @@ const connect = new Promise((req, res) => {
         logger.info('[AMQP] creating channel')
 
         CONNECTIONS.channel = await CONNECTIONS.connection.createChannel()
-
         CONNECTIONS.connection.on('error', onError)
+        clearInterval(this)
 
         logger.info(`[AMQP] connected ${process.env.RABBIT_MQ_URI}`)
 
