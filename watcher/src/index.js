@@ -74,9 +74,8 @@ const findTicket = async (message) => {
 
           logger.info(`Found tickets for job with id ${jobId}`)
 
-          await amqp.publish(
+          await amqp.send(
             process.env.NOTIFICATIONS_QUEUE,
-            'fanout',
             JSON.stringify(notification)
           )
         }

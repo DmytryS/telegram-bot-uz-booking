@@ -69,10 +69,16 @@ export const listen = async (queue, callback) => {
 
 // eslint-disable-next-line
 export const publish = async (queue, message) => {
-
+  if (!CONNECTIONS.connection) {
+    await connect()
+  }
 }
 
 export const send = async (queue, message) => {
+  if (!CONNECTIONS.connection) {
+    await connect()
+  }
+
   logger.info(`[AMQP] Sending data to ${queue}`)
 
   await CONNECTIONS.channel.assertQueue(queue, {
@@ -90,6 +96,9 @@ export const disconnect = async () => {
   if (CONNECTIONS.channel) {
     await CONNECTIONS.connection.disconnect()
   }
+
+  CONNECTIONS.channel = false
+  CONNECTIONS.connection = false
 
   logger.info(`[AMQP] Disconnected from ${process.env.RABBIT_MQ_URI}`)
 }
