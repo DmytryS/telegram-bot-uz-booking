@@ -1,6 +1,6 @@
 import 'dotenv/config.js'
 import moment from 'moment-timezone'
-import { logger, amqp } from './lib/index.js'
+import { logger, amqp, mongo } from './lib/index.js'
 import Job from './models/job.js'
 
 const findActiveJobs = async () => {
@@ -48,9 +48,13 @@ const findActiveJobs = async () => {
       )
 
       await amqp.disconnect()
+      await mongo.connection.close()
     }
   } catch (error) {
     logger.error(error)
+
+    await amqp.disconnect()
+    await mongo.connection.close()
   }
 }
 
