@@ -6,6 +6,7 @@ metadata:
     app: planner
 spec:
   schedule: '*/2 * * * *'
+  concurrencyPolicy: Forbid
   jobTemplate:
     spec:
       template:

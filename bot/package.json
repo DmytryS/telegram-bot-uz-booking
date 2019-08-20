@@ -9,8 +9,7 @@
     "url": "https://github.com/DmytryS/uz-booking-bot.git"
   },
   "scripts": {
-    "start": "node --experimental-modules ./src/index.js",
-    "dev": "NODE_ENV=development nodemon --experimental-modules --watch src ./src/index.JS",
+    "start": "if [[ $(printf '%s' $NODE_ENV) == 'development' ]]; then nodemon --experimental-modules src/index.js; else node --experimental-modules ./src/index.js; fi",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint 'src/**/*.js'",
     "lint:fix": "eslint --fix 'src/**/*.js'"
