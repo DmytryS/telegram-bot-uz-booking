@@ -15,7 +15,7 @@ const onError = (err) => {
   }
 }
 
-const connect = () => new Promise((req, res) => {
+const connect = (infinityRetries) => new Promise((resolve, reject) => {
   setInterval(
     async function () {
       counter++
@@ -33,12 +33,13 @@ const connect = () => new Promise((req, res) => {
 
         logger.info('[AMQP] created channel')
 
-        res()
+        resolve()
       } catch (err) {
         logger.error(`[AMQP] ERROR: ${JSON.stringify(err)}`)
 
-        if (counter >= RETRIES) {
+        if (counter >= RETRIES && !infinityRetries) {
           clearInterval(this)
+          reject(`[AMQP] Failed to connect to ${process.env.RABBIT_MQ_URI}`)
         }
       }
     },
@@ -48,7 +49,7 @@ const connect = () => new Promise((req, res) => {
 
 export const listen = async (queue, callback) => {
   if (!CONNECTIONS.connection) {
-    await connect()
+    await connect(true)
   }
 
   await CONNECTIONS.channel.assertQueue(
@@ -90,7 +91,7 @@ export const send = async (queue, message) => {
   await CONNECTIONS.channel.sendToQueue(queue, Buffer.from(message))
 }
 
-export const disconnect = async () => {
+export const close = async () => {
   if (CONNECTIONS.channel) {
     await CONNECTIONS.channel.close()
   }

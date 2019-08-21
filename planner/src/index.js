@@ -35,25 +35,17 @@ const findActiveJobs = async () => {
           : process.env.WORKER_QUEUE,
         JSON.stringify(output)
       )
-
-      await amqp.disconnect()
-      await mongo.connection.close()
     }
+
+    await amqp.close()
+    await mongo.connection.close()
   } catch (error) {
     logger.error(error)
     logger.warn('Shutdown after error')
 
-    await amqp.disconnect()
+    await amqp.close()
     await mongo.connection.close()
   }
 }
 
-// amqp.start().then(async () => {
-//   logger.info('Planner is up')
-//   await findActiveJobs()
-
-//   await amqp.stop()
-// })
-
-// amqp.listen()
 findActiveJobs()
