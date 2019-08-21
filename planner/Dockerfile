@@ -1,15 +1,12 @@
-FROM node:12-alpine AS base
+FROM node:12-alpine
+
+ARG NODE_ENV
 WORKDIR /usr/src/app
-COPY package.json package.json
+COPY .npmrc  package.json ./
+RUN npm i --quiet && rm .npmrc
 COPY . .
 
-FROM base AS dependencies
-RUN npm install
-
-FROM base AS release
-COPY --from=dependencies /usr/src/app/node_modules ./node_modules
-COPY --from=dependencies /usr/src/app/src ./src
-RUN rm -f package-lock.json
+RUN apk add --no-cache bash vim curl iputils
 
 USER node
 

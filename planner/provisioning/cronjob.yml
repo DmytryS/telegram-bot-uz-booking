@@ -5,19 +5,23 @@ metadata:
   labels:
     app: planner
 spec:
-  schedule: '*/2 * * * *'
+  schedule: "*/2 * * * *"
   concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 200
   jobTemplate:
     spec:
       template:
         spec:
           containers:
-          - name: planner
-            image: loginkr/uz-booking-planner:latest
-            imagePullPolicy: Always
-            envFrom:
-            - configMapRef:
-                name: amqp
-            - configMapRef:
-                name: mongo
+            - name: planner
+              image: loginkr/uz-booking-planner:latest
+              imagePullPolicy: Always
+              # env:
+              #   - name: NODE_ENV
+              #     value: development
+              envFrom:
+                - configMapRef:
+                    name: amqp
+                - configMapRef:
+                    name: mongo
           restartPolicy: OnFailure
