@@ -4,6 +4,8 @@ import UzClient from 'uz-booking-client'
 import { logger, amqp } from './lib/index.js'
 import Job from './models/job.js'
 
+const uzClient = new UzClient('en')
+
 const placeTypes = {
   // en: {
   //   BERTH: 'Berth / 3-cl. sleeper',
@@ -49,8 +51,6 @@ const findTicket = async (message) => {
 
   if (job) {
     try {
-      const uzClient = new UzClient(job.user.language || 'en')
-
       const response = await uzClient.Train.find(
         job.departureStationId,
         job.arrivalStationId,
@@ -66,6 +66,8 @@ const findTicket = async (message) => {
         train => train.wagon_types.length > 0
       )
 
+      console.log(111, trains)
+
       if (trains.length > 0) {
         const trainContainsSeatType = trains.some(train =>
           train.wagon_types.some(seat =>
@@ -74,6 +76,9 @@ const findTicket = async (message) => {
             )
           )
         )
+
+        console.log(222, trainContainsSeatType)
+
 
         if (trainContainsSeatType) {
           output.type = 'FOUND'
