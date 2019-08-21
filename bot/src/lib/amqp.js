@@ -90,11 +90,11 @@ export const send = async (queue, message) => {
 
 export const disconnect = async () => {
   if (CONNECTIONS.channel) {
-    await CONNECTIONS.channel.disconnect()
+    await CONNECTIONS.channel.close()
   }
 
-  if (CONNECTIONS.channel) {
-    await CONNECTIONS.connection.disconnect()
+  if (CONNECTIONS.connection) {
+    await CONNECTIONS.connection.close()
   }
 
   CONNECTIONS.channel = false
