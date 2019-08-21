@@ -40,7 +40,7 @@ const placeTypes = {
 const getPlaceType = (wagonType) => placeTypes[`${wagonType.type}${wagonType.class ? '-' + wagonType.class : ''}`]
 
 const findTicket = async (message) => {
-  logger.info(`Received message: ${message}`)
+  logger.info(`Received message: ${JSON.stringify(message)}`)
 
   const { jobId } = JSON.parse(message)
   const job = await Job.findById(jobId).populate('user')
