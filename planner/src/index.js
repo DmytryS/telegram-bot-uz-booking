@@ -24,8 +24,9 @@ const findActiveJobs = async () => {
       ) {
         // eslint-disable-next-line
         await job.markAsExpired();
-
         output.type = 'EXPIRATION'
+
+        logger.info(`Job with id ${job._id.toString()} expired`)
       }
 
       // eslint-disable-next-line
