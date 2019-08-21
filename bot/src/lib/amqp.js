@@ -20,6 +20,7 @@ const connect = (infinityRetries) => new Promise((resolve, reject) => {
     async function () {
       counter++
       logger.info(`[AMQP] Trying to connect ${process.env.RABBIT_MQ_URI}`)
+
       try {
         CONNECTIONS.connection = await amqp.connect(process.env.RABBIT_MQ_URI)
 
@@ -35,6 +36,9 @@ const connect = (infinityRetries) => new Promise((resolve, reject) => {
 
         resolve()
       } catch (err) {
+        CONNECTIONS.channel = false
+        CONNECTIONS.connection = false
+
         logger.error(`[AMQP] ERROR: ${JSON.stringify(err)}`)
 
         if (counter >= RETRIES && !infinityRetries) {
@@ -63,7 +67,7 @@ export const listen = async (queue, callback) => {
     let ouputMessage = {}
 
     try {
-      ouputMessage = await callback(message)
+      ouputMessage = await callback(message.content.toString())
     } catch (err) {
       ouputMessage.error = err
     }

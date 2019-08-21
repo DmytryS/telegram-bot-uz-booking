@@ -16,8 +16,6 @@ const onError = (err) => {
 }
 
 const connect = (infinityRetries) => new Promise((resolve, reject) => {
-
-
   setInterval(
     async function () {
       counter++
@@ -69,7 +67,7 @@ export const listen = async (queue, callback) => {
     let ouputMessage = {}
 
     try {
-      ouputMessage = await callback(message)
+      ouputMessage = await callback(message.content.toString())
     } catch (err) {
       ouputMessage.error = err
     }
