@@ -11,7 +11,7 @@ const findActiveJobs = async () => {
 
     // eslint-disable-next-line
     for (let job of jobs) {
-      const notification = {
+      const output = {
         jobId: job._id.toString()
       }
 
@@ -25,15 +25,15 @@ const findActiveJobs = async () => {
         // eslint-disable-next-line
         await job.markAsExpired();
 
-        notification.type = 'EXPIRATION'
+        output.type = 'EXPIRATION'
       }
 
       // eslint-disable-next-line
       await amqp.send(
-        notification.type === 'EXPIRATION'
+        output.type === 'EXPIRATION'
           ? process.env.NOTIFICATIONS_QUEUE
           : process.env.WORKER_QUEUE,
-        JSON.stringify(notification)
+        JSON.stringify(output)
       )
 
       await amqp.disconnect()
@@ -41,6 +41,7 @@ const findActiveJobs = async () => {
     }
   } catch (error) {
     logger.error(error)
+    logger.warn('Shutdown after error')
 
     await amqp.disconnect()
     await mongo.connection.close()

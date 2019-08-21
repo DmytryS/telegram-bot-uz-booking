@@ -23,13 +23,15 @@ const connect = () => new Promise((req, res) => {
       try {
         CONNECTIONS.connection = await amqp.connect(process.env.RABBIT_MQ_URI)
 
+        logger.info(`[AMQP] connected ${process.env.RABBIT_MQ_URI}`)
+
         logger.info('[AMQP] creating channel')
 
         CONNECTIONS.channel = await CONNECTIONS.connection.createChannel()
         CONNECTIONS.connection.on('error', onError)
         clearInterval(this)
 
-        logger.info(`[AMQP] connected ${process.env.RABBIT_MQ_URI}`)
+        logger.info('[AMQP] created channel')
 
         res()
       } catch (err) {
