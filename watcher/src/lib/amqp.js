@@ -24,15 +24,15 @@ const connect = (infinityRetries) => new Promise((resolve, reject) => {
       try {
         CONNECTIONS.connection = await amqp.connect(RABBIT_MQ_URI)
 
-        logger.info(`[AMQP] connected ${RABBIT_MQ_URI}`)
-        logger.info('[AMQP] creating channel')
+        logger.info(`[AMQP] Connected ${RABBIT_MQ_URI}`)
+        logger.info('[AMQP] Creating channel')
 
         // eslint-disable-next-line
         CONNECTIONS.channel = await CONNECTIONS.connection.createChannel()
         CONNECTIONS.connection.on('error', onError)
         clearInterval(this)
 
-        logger.info('[AMQP] created channel')
+        logger.info('[AMQP] Created channel')
 
         resolve()
       } catch (err) {
@@ -64,6 +64,8 @@ export const listen = async (queue, callback) => {
       durable: false
     }
   )
+
+  logger.info(`[AMQP] Listening ${queue} queue`)
 
   CONNECTIONS.channel.consume(queue, async (message) => {
     let ouputMessage = {}
