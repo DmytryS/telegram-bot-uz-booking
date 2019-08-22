@@ -5,5 +5,5 @@ metadata:
 data:
   RABBIT_MQ_URI: amqp://rabbit.rabbit
   RABBIT_RECONNECT_INTERVAL: "10000"
-  NOTIFICATIONS_QUEUE: notifications_queue
-  WORKER_QUEUE: worker_queue
+  AMQP_NOTIFICATIONS_QUEUE: notification
+  AMQP_WATCHER_QUEUE: watcher

@@ -5,7 +5,7 @@ import { logger, amqp } from './lib/index.js'
 import { Job } from './models/index.js'
 
 const uzClient = new UzClient.ApiV2('en')
-const { NOTIFICATIONS_QUEUE, WORKER_QUEUE } = process.env
+const { AMQP_NOTIFICATIONS_QUEUE, AMQP_WATCHER_QUEUE } = process.env
 const placeTypes = {
   // en: {
   //   BERTH: 'Berth / 3-cl. sleeper',
@@ -82,7 +82,7 @@ const findTicket = async (message) => {
           logger.info(`Found tickets for job with id ${jobId}`)
 
           await amqp.publish(
-            NOTIFICATIONS_QUEUE,
+            AMQP_NOTIFICATIONS_QUEUE,
             JSON.stringify(output)
           )
         }
@@ -93,4 +93,4 @@ const findTicket = async (message) => {
   }
 }
 
-amqp.listen(WORKER_QUEUE, findTicket)
+amqp.listen(AMQP_WATCHER_QUEUE, findTicket)

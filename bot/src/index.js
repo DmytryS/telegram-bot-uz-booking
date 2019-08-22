@@ -8,13 +8,13 @@ import { middlewares, jobHandler, logger, amqp } from './lib/index.js'
 import * as scenes from './scenes/index.js'
 import * as commands from './commands/index.js'
 
-const { BOT_TOKEN, NOTIFICATIONS_QUEUE } = process.env
+const { BOT_TOKEN, AMQP_NOTIFICATIONS_QUEUE } = process.env
 const bot = new Telegraf(BOT_TOKEN)
 
 export const dateSelectEmitter = new EventEmitter()
 export const calendar = new Calendar(bot)
 
-amqp.listen(NOTIFICATIONS_QUEUE, jobHandler(bot))
+amqp.listen(AMQP_NOTIFICATIONS_QUEUE, jobHandler(bot))
 
 calendar.setDateListener((context, date) => {
   dateSelectEmitter.emit(

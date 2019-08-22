@@ -60,14 +60,6 @@ const enterNumberOfTickets = new WizardScene(
         ticketTypes: ctx.session.ticketTypes,
       }).save()
 
-      // await queue.publish(
-      //   process.env.WORKER_QUEUE,
-      //   'fanout',
-      //   JSON.stringify({
-      //     jobId: job._id.toString()
-      //   })
-      // );
-
       ctx.reply(messages[ctx.session.language].sayWhenAvailable)
     }
 
