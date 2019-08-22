@@ -4,7 +4,7 @@ import UzClient from 'uz-booking-client'
 import { logger, amqp } from './lib/index.js'
 import Job from './models/job.js'
 
-const uzClient = new UzClient('en')
+const uzClient = new UzClient.ApiV2('en')
 
 const placeTypes = {
   // en: {
