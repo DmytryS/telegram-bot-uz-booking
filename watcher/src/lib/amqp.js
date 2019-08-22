@@ -69,6 +69,8 @@ export const listen = async (queue, callback) => {
     try {
       ouputMessage = await callback(message.content.toString())
     } catch (err) {
+      logger.error(`[AMQP] Listener ERROR: ${JSON.stringify(err)}`)
+
       ouputMessage.error = err
     }
   })
