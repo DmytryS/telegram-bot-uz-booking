@@ -57,7 +57,7 @@ const findTicket = async (message) => {
         '00:00:00'
       )
 
-      if (!response || (response.data.data && !response.data.data.trains)) {
+      if (!response || response.data.data || !response.data.data.trains) {
         throw new Error(JSON.stringify(response.data.data))
       }
 
