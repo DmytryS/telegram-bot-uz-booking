@@ -29,8 +29,8 @@ script:
   # - npm run lint --prefix ./bot
   # - npm run lint --prefix ./planner
   # - npm run lint --prefix ./watcher
-  - export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo ${TRAVIS_COMMIT::8} ; fi`
-  # - export TAG=${TRAVIS_COMMIT::8}
+  # - export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo ${TRAVIS_COMMIT::8} ; fi`
+  - export TAG=${TRAVIS_COMMIT::8}
   - docker build -t $DOCKER_BOT_REPO:$TAG ./bot/
   - docker run $DOCKER_BOT_REPO:$TAG run lint
   - docker push $DOCKER_BOT_REPO:$TAG
