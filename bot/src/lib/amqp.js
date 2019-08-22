@@ -25,9 +25,9 @@ const connect = (infinityRetries) => new Promise((resolve, reject) => {
         CONNECTIONS.connection = await amqp.connect(process.env.RABBIT_MQ_URI)
 
         logger.info(`[AMQP] connected ${process.env.RABBIT_MQ_URI}`)
-
         logger.info('[AMQP] creating channel')
 
+        // eslint-disable-next-line
         CONNECTIONS.channel = await CONNECTIONS.connection.createChannel()
         CONNECTIONS.connection.on('error', onError)
         clearInterval(this)
@@ -36,7 +36,9 @@ const connect = (infinityRetries) => new Promise((resolve, reject) => {
 
         resolve()
       } catch (err) {
+        // eslint-disable-next-line
         CONNECTIONS.channel = false
+        // eslint-disable-next-line
         CONNECTIONS.connection = false
 
         logger.error(`[AMQP] ERROR: ${JSON.stringify(err)}`)
@@ -81,20 +83,23 @@ export const publish = async (queue, message) => {
   if (!CONNECTIONS.connection) {
     await connect()
   }
-}
 
-export const send = async (queue, message) => {
-  if (!CONNECTIONS.connection) {
-    await connect()
-  }
-
-  logger.info(`[AMQP] Sending data to ${queue}`)
+  logger.info(`[AMQP] Publishing data to ${queue}`)
 
   await CONNECTIONS.channel.assertQueue(queue, {
     durable: false
   })
 
   await CONNECTIONS.channel.sendToQueue(queue, Buffer.from(message))
+}
+
+// eslint-disable-next-line
+export const request = async (queue, message) => {
+  if (!CONNECTIONS.connection) {
+    await connect()
+  }
+
+  logger.info(`[AMQP] Requesting data from ${queue}`)
 }
 
 export const close = async () => {
@@ -106,7 +111,9 @@ export const close = async () => {
     await CONNECTIONS.connection.close()
   }
 
+  // eslint-disable-next-line
   CONNECTIONS.channel = false
+  // eslint-disable-next-line
   CONNECTIONS.connection = false
 
   logger.info(`[AMQP] Disconnected from ${process.env.RABBIT_MQ_URI}`)

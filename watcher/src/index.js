@@ -5,7 +5,7 @@ import { logger, amqp } from './lib/index.js'
 import Job from './models/job.js'
 
 const uzClient = new UzClient.ApiV2('en')
-
+const { NOTIFICATIONS_QUEUE, WORKER_QUEUE } = process.env
 const placeTypes = {
   // en: {
   //   BERTH: 'Berth / 3-cl. sleeper',
@@ -48,8 +48,6 @@ const findTicket = async (message) => {
   const job = await Job.findById(jobId).populate('user')
   const output = { jobId }
 
-  console.log(1111, 'JOBL', job)
-
   if (job) {
     try {
       const response = await uzClient.Train.find(
@@ -67,8 +65,6 @@ const findTicket = async (message) => {
         train => train.wagon_types.length > 0
       )
 
-      console.log(111, trains)
-
       if (trains.length > 0) {
         const trainContainsSeatType = trains.some(train =>
           train.wagon_types.some(seat =>
@@ -78,9 +74,6 @@ const findTicket = async (message) => {
           )
         )
 
-        console.log(222, trainContainsSeatType)
-
-
         if (trainContainsSeatType) {
           output.type = 'FOUND'
 
@@ -88,8 +81,8 @@ const findTicket = async (message) => {
 
           logger.info(`Found tickets for job with id ${jobId}`)
 
-          await amqp.send(
-            process.env.NOTIFICATIONS_QUEUE,
+          await amqp.publish(
+            NOTIFICATIONS_QUEUE,
             JSON.stringify(output)
           )
         }
@@ -100,4 +93,4 @@ const findTicket = async (message) => {
   }
 }
 
-amqp.listen(process.env.WORKER_QUEUE, findTicket)
+amqp.listen(WORKER_QUEUE, findTicket)

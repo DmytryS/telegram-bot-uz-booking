@@ -3,6 +3,8 @@ import moment from 'moment-timezone'
 import { logger, amqp, mongo } from './lib/index.js'
 import Job from './models/job.js'
 
+const { NOTIFICATIONS_QUEUE, WORKER_QUEUE } = process.env
+
 const findActiveJobs = async () => {
   try {
     const jobs = await Job.find({
@@ -30,10 +32,8 @@ const findActiveJobs = async () => {
       }
 
       // eslint-disable-next-line
-      await amqp.send(
-        output.type === 'EXPIRATION'
-          ? process.env.NOTIFICATIONS_QUEUE
-          : process.env.WORKER_QUEUE,
+      await amqp.publish(
+        output.type === 'EXPIRATION' ? NOTIFICATIONS_QUEUE : WORKER_QUEUE,
         JSON.stringify(output)
       )
     }
