@@ -2,7 +2,7 @@ import 'dotenv/config.js'
 import moment from 'moment'
 import UzClient from 'uz-booking-client'
 import { logger, amqp } from './lib/index.js'
-import Job from './models/job.js'
+import { Job } from './models/index.js'
 
 const uzClient = new UzClient.ApiV2('en')
 const { NOTIFICATIONS_QUEUE, WORKER_QUEUE } = process.env
