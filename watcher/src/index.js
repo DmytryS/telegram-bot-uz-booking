@@ -48,6 +48,7 @@ const findTicket = async (message) => {
   const job = await Job.findById(jobId).populate('user')
   const output = { jobId }
 
+  console.log(1111, 'JOBL', job)
 
   if (job) {
     try {
