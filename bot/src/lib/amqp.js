@@ -86,11 +86,17 @@ export const publish = async (queue, message) => {
 
   logger.info(`[AMQP] Publishing data to ${queue}`)
 
-  await CONNECTIONS.channel.assertQueue(queue, {
-    durable: false
-  })
+  await CONNECTIONS.channel.assertQueue(
+    queue,
+    {
+      durable: false
+    }
+  )
 
-  await CONNECTIONS.channel.sendToQueue(queue, Buffer.from(message))
+  return CONNECTIONS.channel.sendToQueue(
+    queue,
+    Buffer.from(message),
+  )
 }
 
 // eslint-disable-next-line
@@ -100,6 +106,14 @@ export const request = async (queue, message) => {
   }
 
   logger.info(`[AMQP] Requesting data from ${queue}`)
+
+  await CONNECTIONS.channel.assertExchange(queue, 'fanout')
+
+  return CONNECTIONS.channel.publish(
+    queue,
+    '',
+    Buffer.from(message),
+  )
 }
 
 export const close = async () => {
