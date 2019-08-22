@@ -2,12 +2,12 @@ import amqp from 'amqplib'
 import logger from './logger.js'
 
 const RETRIES = 5
-let counter = 0
-
+const { RABBIT_MQ_URI, RABBIT_RECONNECT_INTERVAL } = process.env
 const CONNECTIONS = {
   connection: false,
   channel: false
 }
+let counter = 0
 
 const onError = (err) => {
   if (err.message !== 'Connection closing') {
@@ -19,12 +19,12 @@ const connect = (infinityRetries) => new Promise((resolve, reject) => {
   setInterval(
     async function () {
       counter++
-      logger.info(`[AMQP] Trying to connect ${process.env.RABBIT_MQ_URI}`)
+      logger.info(`[AMQP] Trying to connect ${RABBIT_MQ_URI}`)
 
       try {
-        CONNECTIONS.connection = await amqp.connect(process.env.RABBIT_MQ_URI)
+        CONNECTIONS.connection = await amqp.connect(RABBIT_MQ_URI)
 
-        logger.info(`[AMQP] connected ${process.env.RABBIT_MQ_URI}`)
+        logger.info(`[AMQP] connected ${RABBIT_MQ_URI}`)
         logger.info('[AMQP] creating channel')
 
         // eslint-disable-next-line
@@ -45,11 +45,11 @@ const connect = (infinityRetries) => new Promise((resolve, reject) => {
 
         if (counter >= RETRIES && !infinityRetries) {
           clearInterval(this)
-          reject(`[AMQP] Failed to connect to ${process.env.RABBIT_MQ_URI}`)
+          reject(`[AMQP] Failed to connect to ${RABBIT_MQ_URI}`)
         }
       }
     },
-    process.env.RABBIT_RECONNECT_INTERVAL
+    RABBIT_RECONNECT_INTERVAL
   )
 })
 
@@ -116,5 +116,5 @@ export const close = async () => {
   // eslint-disable-next-line
   CONNECTIONS.connection = false
 
-  logger.info(`[AMQP] Disconnected from ${process.env.RABBIT_MQ_URI}`)
+  logger.info(`[AMQP] Disconnected from ${RABBIT_MQ_URI}`)
 }
