@@ -19,8 +19,8 @@ const ticketTypes = {
     'Value must be either of \'BERTH\', \'DE_LUXE\', \'COMPARTMENT\', \'SEATING_1ST_CLASS\', \'SEATING_2ND_CLASS\' ,\'SEATING_3D_CLASS\''
 }
 
-const { Schema } = mongoose
-const { ObjectId } = Schema
+const { Schema, Types } = mongoose
+const { ObjectId } = Types
 const jobSchema = new Schema(
   {
     chatId: {
