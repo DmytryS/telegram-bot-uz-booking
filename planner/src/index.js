@@ -34,7 +34,7 @@ const findActiveJobs = async () => {
       // eslint-disable-next-line
       await amqp.publish(
         output.type === 'EXPIRATION' ? AMQP_NOTIFICATIONS_QUEUE : AMQP_WATCHER_QUEUE,
-        JSON.stringify(output)
+        output
       )
     }
 

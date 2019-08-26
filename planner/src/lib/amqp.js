@@ -1,13 +1,25 @@
 import amqp from 'amqplib'
+import crypto from 'crypto'
+import EventEmitter from 'events'
 import logger from './logger.js'
+import { inspect } from 'util'
 
 const RETRIES = 5
+const RESPONSE_TIMEOUT = 1000
 const { RABBIT_MQ_URI, RABBIT_RECONNECT_INTERVAL } = process.env
 const CONNECTIONS = {
   connection: false,
   channel: false
 }
 let counter = 0
+
+const formatOutputData = (data) => {
+  if (typeof data === 'object' && data !== null) {
+    return Buffer.from(JSON.stringify(data))
+  }
+
+  return Buffer.from(data)
+}
 
 const onError = (err) => {
   if (err.message !== 'Connection closing') {
@@ -30,6 +42,21 @@ const connect = (infinityRetries) => new Promise((resolve, reject) => {
         // eslint-disable-next-line
         CONNECTIONS.channel = await CONNECTIONS.connection.createChannel()
         CONNECTIONS.connection.on('error', onError)
+
+        // eslint-disable-next-line
+        CONNECTIONS.channel.responseEmitter = new EventEmitter()
+        CONNECTIONS.channel.responseEmitter.setMaxListeners(0)
+        CONNECTIONS.channel.consume(
+          'amq.rabbitmq.reply-to',
+          msg => {
+            CONNECTIONS.channel.responseEmitter.emit(
+              msg.properties.correlationId,
+              msg,
+            )
+          },
+          { noAck: true },
+        )
+
         clearInterval(this)
 
         logger.info('[AMQP] Created channel')
@@ -57,8 +84,9 @@ export const listen = async (queue, callback) => {
   if (!CONNECTIONS.connection) {
     await connect(true)
   }
+  const { channel } = CONNECTIONS
 
-  await CONNECTIONS.channel.assertQueue(
+  await channel.assertQueue(
     queue,
     {
       durable: false
@@ -67,16 +95,33 @@ export const listen = async (queue, callback) => {
 
   logger.info(`[AMQP] Listening ${queue} queue`)
 
-  CONNECTIONS.channel.consume(queue, async (message) => {
+  channel.consume(queue, async (message) => {
     let ouputMessage = {}
 
     try {
-      ouputMessage = await callback(message.content.toString())
+      ouputMessage = await callback(JSON.parse(message.content.toString('utf8')))
     } catch (err) {
-      logger.error(`[AMQP] Listener ERROR: ${JSON.stringify(err)}`)
+      logger.error(`[AMQP] Listener ERROR: ${inspect(err, { output: true, depth: 4 })}`)
 
-      ouputMessage.error = err
+      ouputMessage.error = {
+        message: err.message,
+        stack: err.stack
+      }
     }
+
+    const { correlationId, replyTo } = message.properties
+    if (correlationId && replyTo) {
+      await channel.assertQueue(replyTo, { durable: false })
+      await channel.sendToQueue(
+        replyTo,
+        formatOutputData(ouputMessage),
+        {
+          correlationId
+        }
+      )
+    }
+
+    await channel.ack(message)
   })
 }
 
@@ -88,16 +133,12 @@ export const publish = async (queue, message) => {
 
   logger.info(`[AMQP] Publishing data to ${queue}`)
 
-  await CONNECTIONS.channel.assertQueue(
-    queue,
-    {
-      durable: false
-    }
-  )
+  await CONNECTIONS.channel.assertExchange(queue, 'fanout')
 
-  return CONNECTIONS.channel.sendToQueue(
+  return CONNECTIONS.channel.publish(
     queue,
-    Buffer.from(message),
+    '',
+    formatOutputData(message),
   )
 }
 
@@ -106,16 +147,47 @@ export const request = async (queue, message) => {
   if (!CONNECTIONS.connection) {
     await connect()
   }
+  const { channel } = CONNECTIONS
 
   logger.info(`[AMQP] Requesting data from ${queue}`)
 
-  await CONNECTIONS.channel.assertExchange(queue, 'fanout')
-
-  return CONNECTIONS.channel.publish(
+  await channel.assertQueue(
     queue,
-    '',
-    Buffer.from(message),
+    {
+      durable: false
+    }
   )
+
+  return new Promise((resolve, reject) => {
+    const correlationId = crypto.randomBytes(7).toString('hex')
+    let timeout
+    channel.responseEmitter.once(
+      correlationId,
+      (response) => {
+        clearTimeout(timeout)
+        channel.responseEmitter.removeAllListeners(correlationId)
+        resolve(JSON.parse(response.content.toString('utf8')))
+      }
+    )
+
+    CONNECTIONS.channel.sendToQueue(
+      queue,
+      formatOutputData(message),
+      {
+        correlationId,
+        replyTo: 'amq.rabbitmq.reply-to'
+      },
+    )
+
+    timeout = setTimeout(
+      () => {
+        logger.error('[AMQP] RPC timeout')
+        channel.responseEmitter.removeAllListeners(correlationId)
+        reject(new Error('timeout'))
+      },
+      RESPONSE_TIMEOUT
+    )
+  })
 }
 
 export const close = async () => {

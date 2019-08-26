@@ -10,7 +10,7 @@ export default function (bot) {
   return async message => {
     try {
       logger.info(`[JobHandler] Received message: ${inspect(message, { colors: true, depth: 4 })}`)
-      let { jobId, type } = JSON.parse(message)
+      let { jobId, type } = message
 
       const job = await Job.findById(jobId).populate('user')
       const uzClient = new UzClient.ApiV2(job.user.language)

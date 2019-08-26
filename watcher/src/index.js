@@ -83,7 +83,7 @@ const findTicket = async (message) => {
 
           await amqp.publish(
             AMQP_NOTIFICATIONS_QUEUE,
-            JSON.stringify(output)
+            output
           )
         }
       }
