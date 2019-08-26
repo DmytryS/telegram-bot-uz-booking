@@ -1,6 +1,7 @@
 import 'dotenv/config.js'
 import moment from 'moment'
 import UzClient from 'uz-booking-client'
+import { inspect } from 'util'
 import { logger, amqp } from './lib/index.js'
 import { Job } from './models/index.js'
 
@@ -42,9 +43,9 @@ const placeTypes = {
 const getPlaceType = (wagonType) => placeTypes[`${wagonType.type}${wagonType.class ? '-' + wagonType.class : ''}`]
 
 const findTicket = async (message) => {
-  logger.info(`Received message: ${message}`)
+  logger.info(`Received message: ${inspect(message, { colors: true, depth: 4 })}`)
 
-  const { jobId } = JSON.parse(message)
+  const { jobId } = message
   const job = await Job.findById(jobId).populate('user')
   const output = { jobId }
 
