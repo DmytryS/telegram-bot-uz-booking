@@ -130,14 +130,20 @@ export const publish = async (queue, message) => {
   if (!CONNECTIONS.connection) {
     await connect()
   }
+  const { channel } = CONNECTIONS
 
   logger.info(`[AMQP] Publishing data to ${queue}`)
 
-  await CONNECTIONS.channel.assertExchange(queue, 'fanout')
+  // await CONNECTIONS.channel.assertExchange(queue, 'fanout')
+  // return CONNECTIONS.channel.publish(
+  //   queue,
+  //   '',
+  //   formatOutputData(message),
+  // )
 
-  return CONNECTIONS.channel.publish(
+  await channel.assertQueue(queue, { durable: false })
+  return channel.sendToQueue(
     queue,
-    '',
     formatOutputData(message),
   )
 }

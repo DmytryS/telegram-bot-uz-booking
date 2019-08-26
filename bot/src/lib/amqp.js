@@ -13,6 +13,14 @@ const CONNECTIONS = {
 }
 let counter = 0
 
+const formatOutputData = (data) => {
+  if (typeof data === 'object' && data !== null) {
+    return Buffer.from(JSON.stringify(data))
+  }
+
+  return Buffer.from(data)
+}
+
 const onError = (err) => {
   if (err.message !== 'Connection closing') {
     logger.info(`[AMQP] ERROR: ${err.message}`)
@@ -106,7 +114,7 @@ export const listen = async (queue, callback) => {
       await channel.assertQueue(replyTo, { durable: false })
       await channel.sendToQueue(
         replyTo,
-        Buffer.from(JSON.stringify(ouputMessage)),
+        formatOutputData(ouputMessage),
         {
           correlationId
         }
@@ -122,15 +130,21 @@ export const publish = async (queue, message) => {
   if (!CONNECTIONS.connection) {
     await connect()
   }
+  const { channel } = CONNECTIONS
 
   logger.info(`[AMQP] Publishing data to ${queue}`)
 
-  await CONNECTIONS.channel.assertExchange(queue, 'fanout')
+  // await CONNECTIONS.channel.assertExchange(queue, 'fanout')
+  // return CONNECTIONS.channel.publish(
+  //   queue,
+  //   '',
+  //   formatOutputData(message),
+  // )
 
-  return CONNECTIONS.channel.publish(
+  await channel.assertQueue(queue, { durable: false })
+  return channel.sendToQueue(
     queue,
-    '',
-    Buffer.from(JSON.stringify(message)),
+    formatOutputData(message),
   )
 }
 
@@ -164,7 +178,7 @@ export const request = async (queue, message) => {
 
     CONNECTIONS.channel.sendToQueue(
       queue,
-      Buffer.from(JSON.stringify(message)),
+      formatOutputData(message),
       {
         correlationId,
         replyTo: 'amq.rabbitmq.reply-to'
