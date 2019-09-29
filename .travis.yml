@@ -1,51 +1,48 @@
 sudo: required
-# language: node_js
-# node_js:
-#   - "12"
 services:
   - docker
-branches:
-  only:
-    - master
-# install:
-#   - npm install --prefix ./bot
-#   - npm install --prefix ./planner
-#   - npm install --prefix ./watcher
-before_script:
-  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-  - curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
-  - chmod +x ./kubectl
-  - sudo mv ./kubectl /usr/local/bin/kubectl
-  - export KUBECONFIG=${HOME}/.kube/config
-  - mkdir ${HOME}/.kube
-  - echo $KUBE_CLUSTER_CERTIFICATE | base64 --decode >>  ${HOME}/.kube/ca.pem
-  - echo $KUBE_CLIENT_KEY | base64 --decode >>  ${HOME}/.kube/admin-key.pem
-  - echo $KUBE_CLIENT_CERTIFICATE | base64 --decode >>  ${HOME}/.kube/admin-cert.pem
-  - kubectl config set-credentials $KUBE_CLUSTER_USERNAME --username=$KUBE_CLUSTER_USERNAME --client-certificate=${HOME}/.kube/admin-cert.pem --client-key=${HOME}/.kube/admin-key.pem
-  - kubectl config set-cluster $KUBE_CLUSTER_NAME --server=$KUBE_CLUSTER_IP --certificate-authority=${HOME}/.kube/ca.pem
-  - kubectl config set-context $KUBE_CLUSTER_CONTEXT --user=$KUBE_CLUSTER_USERNAME --namespace=default --cluster=$KUBE_CLUSTER_NAME
-  - kubectl config use-context $KUBE_CLUSTER_CONTEXT
-script:
-  # - npm run lint --prefix ./bot
-  # - npm run lint --prefix ./planner
-  # - npm run lint --prefix ./watcher
-  # - export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo ${TRAVIS_COMMIT::8} ; fi`
-  - export TAG=${TRAVIS_COMMIT::8}
-  - docker build -t $DOCKER_BOT_REPO:$TAG ./bot/
-  - docker run $DOCKER_BOT_REPO:$TAG run lint
-  - docker push $DOCKER_BOT_REPO:$TAG
-  - docker build -t $DOCKER_PLANER_REPO:$TAG ./planner/
-  - docker run $DOCKER_PLANER_REPO:$TAG run lint
-  - docker push $DOCKER_PLANER_REPO:$TAG
-  - docker build -t $DOCKER_WATCHER_REPO:$TAG ./watcher/
-  - docker run $DOCKER_WATCHER_REPO:$TAG run lint
-  - docker push $DOCKER_WATCHER_REPO:$TAG
-  # - kubectl --namespace=$KUBE_NAMESPACE delete pod $KUBE_BOT_APP_NAME --cascade=true --ignore-not-found=true
-  # - kubectl --namespace=$KUBE_NAMESPACE run --generator=run-pod/v1 --image=$DOCKER_BOT_REPO:$TAG $KUBE_BOT_APP_NAME --env="BOT_TOKEN=${BOT_TOKEN}" --env="MONGODB_URI=${MONGODB_URI}" --env="RABBIT_MQ_URI=${RABBIT_MQ_URI}" --env="RABBIT_RECONNECT_INTERVAL=${RABBIT_RECONNECT_INTERVAL}" --env="NOTIFICATIONS_QUEUE=${NOTIFICATIONS_QUEUE}" --env="WORKER_QUEUE=${WORKER_QUEUE}"
-  # - kubectl --namespace=$KUBE_NAMESPACE delete pod $KUBE_PLANNER_APP_NAME --cascade=true --ignore-not-found=true
-  # - kubectl --namespace=$KUBE_NAMESPACE run --generator=run-pod/v1 --image=$DOCKER_PLANER_REPO:$TAG $KUBE_PLANNER_APP_NAME --env="MONGODB_URI=${MONGODB_URI}" --env="RABBIT_MQ_URI=${RABBIT_MQ_URI}" --env="RABBIT_RECONNECT_INTERVAL=${RABBIT_RECONNECT_INTERVAL}" --env="NOTIFICATIONS_QUEUE=${NOTIFICATIONS_QUEUE}" --env="WORKER_QUEUE=${WORKER_QUEUE}" --env="JOBS_CHECK_INTERVAL=${JOBS_CHECK_INTERVAL}"
-  # - kubectl --namespace=$KUBE_NAMESPACE delete pod $KUBE_WATCHER_APP_NAME --cascade=true --ignore-not-found=true
-  # - kubectl --namespace=$KUBE_NAMESPACE run --generator=run-pod/v1 --image=$DOCKER_WATCHER_REPO:$TAG $KUBE_WATCHER_APP_NAME --env="MONGODB_URI=${MONGODB_URI}" --env="RABBIT_MQ_URI=${RABBIT_MQ_URI}" --env="RABBIT_RECONNECT_INTERVAL=${RABBIT_RECONNECT_INTERVAL}" --env="NOTIFICATIONS_QUEUE=${NOTIFICATIONS_QUEUE}" --env="WORKER_QUEUE=${WORKER_QUEUE}"
-  - kubectl set image deployment/bot bot=${DOCKER_BOT_REPO}:${TAG} -n ${KUBE_NAMESPACE}
-  - kubectl set image deployment/watcher watcher=${DOCKER_WATCHER_REPO}:${TAG} -n ${KUBE_NAMESPACE}
-  - kubectl set image cronjob/planner planner=${DOCKER_PLANER_REPO}:${TAG} -n ${KUBE_NAMESPACE}
+language: node_js
+node_js:
+  - 12
+jobs:
+  include:
+  - stage: build
+    script:
+      - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+      - export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo $TRAVIS_BRANCH ; fi`
+      - docker build -t $DOCKER_BOT_REPO:$TAG ./bot/
+      - docker run $DOCKER_BOT_REPO:$TAG run lint
+      - docker push $DOCKER_BOT_REPO:$TAG
+      - docker build -t $DOCKER_PLANER_REPO:$TAG ./planner/
+      - docker run $DOCKER_PLANER_REPO:$TAG run lint
+      - docker push $DOCKER_PLANER_REPO:$TAG
+      - docker build -t $DOCKER_WATCHER_REPO:$TAG ./watcher/
+      - docker run $DOCKER_WATCHER_REPO:$TAG run lint
+      - docker push $DOCKER_WATCHER_REPO:$TAG
+  - stage: build_version_and_deploy
+    if: tag IS present
+    script:
+      - curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+      - chmod +x ./kubectl
+      - sudo mv ./kubectl /usr/local/bin/kubectl
+      - export KUBECONFIG=${HOME}/.kube/config
+      - mkdir ${HOME}/.kube
+      - echo $KUBE_CLUSTER_CERTIFICATE | base64 --decode >>  ${HOME}/.kube/ca.pem
+      - echo $KUBE_CLIENT_KEY | base64 --decode >>  ${HOME}/.kube/admin-key.pem
+      - echo $KUBE_CLIENT_CERTIFICATE | base64 --decode >>  ${HOME}/.kube/admin-cert.pem
+      - kubectl config set-credentials $KUBE_CLUSTER_USERNAME --username=$KUBE_CLUSTER_USERNAME --client-certificate=${HOME}/.kube/admin-cert.pem --client-key=${HOME}/.kube/admin-key.pem
+      - kubectl config set-cluster $KUBE_CLUSTER_NAME --server=$KUBE_CLUSTER_IP --certificate-authority=${HOME}/.kube/ca.pem
+      - kubectl config set-context $KUBE_CLUSTER_CONTEXT --user=$KUBE_CLUSTER_USERNAME --namespace=default --cluster=$KUBE_CLUSTER_NAME
+      - kubectl config use-context $KUBE_CLUSTER_CONTEXT
+      - docker build -t $DOCKER_BOT_REPO:$TRAVIS_TAG ./bot/
+      - docker run $DOCKER_BOT_REPO:$TRAVIS_TAG run lint
+      - docker push $DOCKER_BOT_REPO:$TRAVIS_TAG
+      - docker build -t $DOCKER_PLANER_REPO:$TRAVIS_TAG ./planner/
+      - docker run $DOCKER_PLANER_REPO:$TRAVIS_TAG run lint
+      - docker push $DOCKER_PLANER_REPO:$TRAVIS_TAG
+      - docker build -t $DOCKER_WATCHER_REPO:$TRAVIS_TAG ./watcher/
+      - docker run $DOCKER_WATCHER_REPO:$TRAVIS_TAG run lint
+      - docker push $DOCKER_WATCHER_REPO:$TRAVIS_TAG
+      - kubectl set image deployment/bot bot=${DOCKER_BOT_REPO}:${TAG} -n ${KUBE_NAMESPACE}
+      - kubectl set image deployment/watcher watcher=${DOCKER_WATCHER_REPO}:${TAG} -n ${KUBE_NAMESPACE}
+      - kubectl set image cronjob/planner planner=${DOCKER_PLANER_REPO}:${TAG} -n ${KUBE_NAMESPACE}
