@@ -29,7 +29,7 @@ mongoose.connection.on('error', error => {
 
 mongoose.connection.on('reconnected', () => {
   logger.error(`[MONGO] Reconnected to ${MONGODB_URI}`)
-});
+})
 
 mongoose.connection.on('disconnected', () => {
   logger.info(`[MONGO] Disconnected from ${MONGODB_URI}`)
