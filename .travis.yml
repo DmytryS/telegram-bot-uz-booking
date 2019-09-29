@@ -22,6 +22,7 @@ jobs:
   - stage: build_version_and_deploy
     if: tag IS present
     script:
+      - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
       - curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
       - chmod +x ./kubectl
       - sudo mv ./kubectl /usr/local/bin/kubectl
@@ -43,6 +44,6 @@ jobs:
       - docker build -t $DOCKER_WATCHER_REPO:$TRAVIS_TAG ./watcher/
       - docker run $DOCKER_WATCHER_REPO:$TRAVIS_TAG run lint
       - docker push $DOCKER_WATCHER_REPO:$TRAVIS_TAG
-      - kubectl set image deployment/bot bot=${DOCKER_BOT_REPO}:${TAG} -n ${KUBE_NAMESPACE}
-      - kubectl set image deployment/watcher watcher=${DOCKER_WATCHER_REPO}:${TAG} -n ${KUBE_NAMESPACE}
-      - kubectl set image cronjob/planner planner=${DOCKER_PLANER_REPO}:${TAG} -n ${KUBE_NAMESPACE}
+      - kubectl set image deployment/bot bot=${DOCKER_BOT_REPO}:${TRAVIS_TAG} -n ${KUBE_NAMESPACE}
+      - kubectl set image deployment/watcher watcher=${DOCKER_WATCHER_REPO}:${TRAVIS_TAG} -n ${KUBE_NAMESPACE}
+      - kubectl set image cronjob/planner planner=${DOCKER_PLANER_REPO}:${TRAVIS_TAG} -n ${KUBE_NAMESPACE}
