@@ -62,4 +62,5 @@ export default {
     `Наблюдение за билетами на ${departureStation} - ${arrivalStation} остановлено ${reason ||
     ''}`,
   alreadyWatching: 'Я уже слежу за этим направлением',
+  buy: 'Купить',
 }

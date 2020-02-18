@@ -1,6 +1,6 @@
 {
   "name": "ticket-bot-service",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Telegram bot service",
   "main": "src/index.js",
   "type": "module",
@@ -9,7 +9,7 @@
     "url": "https://github.com/DmytryS/uz-booking-bot.git"
   },
   "scripts": {
-    "start": "if [[ $(printf '%s' $NODE_ENV) == 'development' ]]; then nodemon --experimental-modules src/index.js; else node --experimental-modules ./src/index.js; fi",
+    "start": "if [[ ${NODE_ENV:-production} == 'development' ]]; then nodemon --experimental-modules src/index.js; else node --experimental-modules ./src/index.js; fi",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint 'src/**/*.js'",
     "lint:fix": "eslint --fix 'src/**/*.js'"

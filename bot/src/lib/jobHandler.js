@@ -46,6 +46,8 @@ export default function (bot) {
           if (trains.length > 0) {
             botMessage = messages[job.user.language].watcherFoundTicket + '\n'
             botMessage += print.printTrainsList(
+              job.departureStationId,
+              job.arrivalStationId,
               trains,
               moment(job.departureDate).format('YYYY-MM-DD'),
               job.user.language
@@ -58,7 +60,7 @@ export default function (bot) {
       }
 
       if (botMessage) {
-        bot.telegram.sendMessage(job.chatId, botMessage)
+        await bot.telegram.sendMessage(job.chatId, botMessage, { parse_mode: 'HTML'})
       }
     } catch (error) {
       logger.error(`[JobHandler] Error:${inspect(error, { colors: true, depth: 4 })}`)

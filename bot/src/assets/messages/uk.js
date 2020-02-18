@@ -60,4 +60,5 @@ export default {
   jobStopped: (departureStation, arrivalStation) =>
     `Спостереження за квитками на ${departureStation} - ${arrivalStation} припинено`,
   alreadyWatching: 'Я вже спостерігаю за цим напрямком',
+  buy: 'Купити',
 }
