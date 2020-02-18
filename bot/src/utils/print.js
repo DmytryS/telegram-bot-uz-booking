@@ -94,8 +94,7 @@ const printTrainsList = (
     }\n\n`
 
     train.wagon_types.forEach(type => {
-      console.log('TYPE', type.type)
-      const ticketBuyUrl = `https://booking.uz.gov.ua/${language}/?from=${departureStationCode}&to=${arrivalStationCode}&date=${departureDate}&time=00%3A00&train=${encodeURIComponent(train.number)}&wagon_type_id=${encodeURIComponent(type.type)}&url=train-wagons`
+      const ticketBuyUrl = `https://booking.uz.gov.ua/${language}/?from=${departureStationCode}&to=${arrivalStationCode}&date=${departureDate}&time=00%3A00&train=${encodeURIComponent(train.number)}&wagon_type_id=${encodeURIComponent(`${type.type}${type.class}`)}&url=train-wagons`
       responseText += `🎫  ${messages[language][getPlaceType(type)]}: ${type.places} <a href="${ticketBuyUrl}">${messages[language].buy}</a>\n`
     })
   })
