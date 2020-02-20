@@ -111,7 +111,9 @@ const selectDepartureDate = new WizardScene(
         ctx.replyWithHTML(
           print.printTrainsList(
             ctx.session.departureStation,
+            ctx.session.departureStationName,
             ctx.session.arrivalStation,
+            ctx.session.arrivalStationName,
             trains,
             ctx.session.departureDate,
             ctx.session.language

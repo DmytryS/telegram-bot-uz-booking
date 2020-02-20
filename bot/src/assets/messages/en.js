@@ -61,4 +61,5 @@ export default {
     ''}`,
   alreadyWatching: 'I`m already watching for this direction',
   buy: 'Buy',
+  goToWebSite: 'Go to booking.uz.gov.ua',
 }

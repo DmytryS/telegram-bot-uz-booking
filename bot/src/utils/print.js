@@ -28,14 +28,18 @@ const getPlaceType = (wagonType) => placeTypes[`${wagonType.type}${wagonType.cla
 /**
  * Prints results of train search
  * @param {String} departureStationCode departure station code
+ * @param {String} departureStationName departure station name
  * @param {String} arrivalStationCode arrival station code
+ * @param {String} arrivalStationName arrival station name
  * @param {Array<Train>} trains array of trains
  * @param {String} departureDate departure date string
  * @param {String} language language string
  */
 const printTrainsList = (
   departureStationCode,
+  departureStationName,
   arrivalStationCode,
+  arrivalStationName,
   trains,
   departureDate,
   language
@@ -44,6 +48,7 @@ const printTrainsList = (
     trains.length,
     departureDate
   )}\n`
+  responseText += `${departureStationName} - ${arrivalStationName}\n`
   const trainTypes = trains
     .reduce(
       (types, train) =>
@@ -80,6 +85,10 @@ const printTrainsList = (
     }
   })
 
+  const toUzBookingUrl = `https://booking.uz.gov.ua/${language}/?from=${departureStationCode}&to=${arrivalStationCode}&date=${departureDate}&time=00%3A00&url=train-list`
+
+  responseText += `\n<a href="${toUzBookingUrl}">${messages[language].goToWebSite}</a>\n`
+
   trains.forEach(train => {
     console.log('TRAIN: ', train)
 
@@ -98,10 +107,6 @@ const printTrainsList = (
       responseText += `🎫  ${messages[language][getPlaceType(type)]}: ${type.places} <a href="${ticketBuyUrl}">${messages[language].buy}</a>\n`
     })
   })
-
-  const toUzBookingUrl = `https://booking.uz.gov.ua/${language}/?from=${departureStationCode}&to=${arrivalStationCode}&date=${departureDate}&time=00%3A00&url=train-list`
-
-  responseText += `\n<a href="${toUzBookingUrl}">${messages[language].buy}</a>`
 
   return responseText
 }

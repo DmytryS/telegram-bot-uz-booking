@@ -47,7 +47,9 @@ export default function (bot) {
             botMessage = messages[job.user.language].watcherFoundTicket + '\n'
             botMessage += print.printTrainsList(
               job.departureStationId,
+              job.departureStationName,
               job.arrivalStationId,
+              job.arrivalStationName,
               trains,
               moment(job.departureDate).format('YYYY-MM-DD'),
               job.user.language

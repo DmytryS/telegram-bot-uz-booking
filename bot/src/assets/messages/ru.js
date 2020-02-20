@@ -63,4 +63,5 @@ export default {
     ''}`,
   alreadyWatching: 'Я уже слежу за этим направлением',
   buy: 'Купить',
+  goToWebSite: 'Перейти на booking.uz.gov.ua',
 }

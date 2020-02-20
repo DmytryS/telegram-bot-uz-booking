@@ -61,4 +61,5 @@ export default {
     `Спостереження за квитками на ${departureStation} - ${arrivalStation} припинено`,
   alreadyWatching: 'Я вже спостерігаю за цим напрямком',
   buy: 'Купити',
+  goToWebSite: 'Перейти до booking.uz.gov.ua',
 }
