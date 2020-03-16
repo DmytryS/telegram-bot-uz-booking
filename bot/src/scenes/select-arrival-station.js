@@ -74,7 +74,7 @@ const selectArrivalStation = new WizardScene(
 
     delete ctx.session.stations
 
-    ctx.scene.enter('selectDepartureDate')
+    ctx.scene.enter('selectDepartureTime')
   }
 )
 

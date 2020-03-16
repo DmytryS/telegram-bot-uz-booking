@@ -12,6 +12,7 @@ const { BOT_TOKEN, AMQP_NOTIFICATIONS_QUEUE } = process.env
 const bot = new Telegraf(BOT_TOKEN)
 
 export const dateSelectEmitter = new EventEmitter()
+export const timeSelectEmitter = new EventEmitter()
 export const calendar = new Calendar(bot)
 
 amqp.listen(AMQP_NOTIFICATIONS_QUEUE, jobHandler(bot))
@@ -29,11 +30,24 @@ const stage = new Stage(
     scenes.selectDepartureStation,
     scenes.selectArrivalStation,
     scenes.selectDepartureDate,
+    scenes.selectDepartureTime,
     scenes.setLanguage,
     scenes.selectSeatType,
     scenes.enterNumberOfTickets,
   ],
   { ttl: 60 }
+)
+
+// bot.on('callback_query', (context) => {
+//   timeSelectEmitter.emit(
+//     `timeSelect-${context.update.callback_query.from.id}`,
+//     context
+//   )
+// })
+
+bot.on(
+  'inline_query',
+  a=>console.log(a)
 )
 
 bot.use(telegrafSession())

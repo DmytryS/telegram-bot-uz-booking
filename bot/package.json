@@ -9,7 +9,7 @@
     "url": "https://github.com/DmytryS/uz-booking-bot.git"
   },
   "scripts": {
-    "start": "if [[ ${NODE_ENV:-production} == 'development' ]]; then nodemon --experimental-modules src/index.js; else node --experimental-modules ./src/index.js; fi",
+    "start": "if [[ ${NODE_ENV:-production} == 'development' ]]; then nodemon --experimental-modules src/index.js; else env NODE_ENV=production node --experimental-modules ./src/index.js; fi",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint 'src/**/*.js'",
     "lint:fix": "eslint --fix 'src/**/*.js'"
@@ -27,7 +27,7 @@
     "winston": "^3.2.1"
   },
   "devDependencies": {
-    "eslint": "^5.15.3",
+    "eslint": "^5.16.0",
     "nodemon": "^1.18.9"
   }
 }

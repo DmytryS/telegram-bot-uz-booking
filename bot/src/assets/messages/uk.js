@@ -6,6 +6,7 @@ export default {
   errorOccured: '❌ Відбулася помилка',
   stationNotExists: 'Такий станції не існує',
   choseStation: 'Виберіть станцію',
+  chooseDepartureTime: 'Вiдправлення пiсля...',
   choseDepartureDate: 'Виберіть дату відправлення',
   departure: 'відправлення',
   arrival: 'прибуття',

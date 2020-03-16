@@ -90,8 +90,6 @@ const printTrainsList = (
   responseText += `\n<a href="${toUzBookingUrl}">${messages[language].goToWebSite}</a>\n`
 
   trains.forEach(train => {
-    console.log('TRAIN: ', train)
-
     responseText += '\n〰〰〰〰〰〰〰〰\n\n'
     responseText += `${trainLogo(train.category)} ${train.number} ${
       train.from.station_title

@@ -3,9 +3,10 @@ import Markup from 'telegraf/markup.js'
 import moment from 'moment'
 import UzClient from 'uz-booking-client'
 import logger from '../lib/logger.js'
+import { Audit, User } from '../models/index.js'
 import messages from '../assets/messages/index.js'
 import { dateSelectEmitter, calendar } from '../index.js'
-import print from '../utils/print.js'
+import { print } from '../utils/index.js'
 
 const sendErrorMessage = (ctx, message) =>
   ctx.reply(`${messages[ctx.session.language].errorOccured}\n${message || ''}`)
@@ -26,7 +27,7 @@ const selectDepartureDate = new WizardScene(
     )
 
     // eslint-disable-next-line
-        const onDateSelected = async date => {
+    const onDateSelected = async date => {
       ctx.session.departureDate = date
 
       ctx.reply(date)
@@ -37,14 +38,25 @@ const selectDepartureDate = new WizardScene(
         const uzClient = new UzClient.ApiV2(ctx.session.language)
         let response = false
 
+        const user = await User.findOne({ telegramId: ctx.from.id })
+        await new Audit({
+          user: user._id,
+          type: ctx.session.ticketSearchType === 'DIRECT' ? 'FIND_DIRECT_TICKETS' : 'FIND_INTERCHAGE_TICKETS',
+          departureStationId: ctx.session.departureStation,
+          departureStationName: ctx.session.departureStationName,
+          arrivalStationId: ctx.session.arrivalStation,
+          arrivalStationName: ctx.session.arrivalStationName,
+          departureDate: ctx.session.departureDate,
+        }).save()
+
         // eslint-disable-next-line
-                switch (ctx.session.ticketSearchType) {
+        switch (ctx.session.ticketSearchType) {
           case 'DIRECT':
             response = await uzClient.Train.find(
               ctx.session.departureStation,
               ctx.session.arrivalStation,
               ctx.session.departureDate,
-              '00:00:00'
+              ctx.session.departureTime,//'00:00:00'
             )
             break
           case 'INTERCHANGE':
@@ -137,8 +149,8 @@ const selectDepartureDate = new WizardScene(
     }
 
     const userId =
-            (ctx.update.message && ctx.update.message.from.id) ||
-            (ctx.update.callback_query && ctx.update.callback_query.from.id)
+      (ctx.update.message && ctx.update.message.from.id) ||
+      (ctx.update.callback_query && ctx.update.callback_query.from.id)
 
     dateSelectEmitter.once(`dateSelect-${userId}`, onDateSelected)
   },
@@ -148,7 +160,7 @@ const selectDepartureDate = new WizardScene(
     } else {
       switch (ctx.callbackQuery.data) {
         case 'FIND_ANOTHER_DATE_TICKETS':
-          ctx.scene.enter('selectDepartureDate')
+          ctx.scene.enter('selectDepartureTime')
           break
         case 'FIND_DIRECT_TICKETS':
           ctx.session.ticketSearchType = 'DIRECT'
@@ -160,19 +172,19 @@ const selectDepartureDate = new WizardScene(
         case 'FIND_INTERCHANGE_TICKETS':
           // TODO
           ctx.session.ticketSearchType = 'INTERCHANGE'
-          ctx.scene.enter('selectDepartureDate')
+          ctx.scene.enter('selectDepartureTime')
           break
         case 'REMIND_ME_WHEN_AVAILABLE':
           ctx.scene.enter('selectSeatType')
           break
         case 'FIND_RETURN_TICKET':
           // eslint-disable-next-line
-                    const { departureStation } = ctx.session;
+          const { departureStation } = ctx.session;
 
           ctx.session.ticketSearchType = 'DIRECT'
           ctx.session.departureStation = ctx.session.arrivalStation
           ctx.session.arrivalStation = departureStation
-          ctx.scene.enter('selectDepartureDate')
+          ctx.scene.enter('selectDepartureTime')
           break
         default:
           ctx.scene.leave()
