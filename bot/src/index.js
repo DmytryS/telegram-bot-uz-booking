@@ -38,18 +38,6 @@ const stage = new Stage(
   { ttl: 60 }
 )
 
-// bot.on('callback_query', (context) => {
-//   timeSelectEmitter.emit(
-//     `timeSelect-${context.update.callback_query.from.id}`,
-//     context
-//   )
-// })
-
-bot.on(
-  'inline_query',
-  a=>console.log(a)
-)
-
 bot.use(telegrafSession())
 bot.use(stage.middleware())
 bot.use(middlewares.getUserLanguage)
@@ -70,6 +58,20 @@ bot.hears(/\/stop_watch_(.*)/, commands.stopWatch)
 
 bot.start(commands.start)
 bot.help(commands.help)
+
+bot.on('callback_query', (context) => {
+  if(
+    /^\d{2}:00:00$/.test(context.update.callback_query.data)
+    || context.update.callback_query.data === '«'
+    || context.update.callback_query.data === '»'
+  ) {
+    timeSelectEmitter.emit(
+      `timeSelect-${context.update.callback_query.from.id}`,
+      context
+    )
+  }
+})
+
 bot.catch(err => {
   logger.error(`An error occured in app ${JSON.stringify(err)}`)
 })

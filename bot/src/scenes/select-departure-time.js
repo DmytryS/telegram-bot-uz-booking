@@ -10,6 +10,9 @@ const sendErrorMessage = (ctx, message) =>
 const selectDepartureDate = new WizardScene(
   'selectDepartureTime',
   ctx => {
+    if(ctx.update.callback_query && /^\d{2}:00:00$/.test(ctx.update.callback_query.data)) {
+      return ctx.wizard.next()
+    }
     const buttonArr = []
 
     for (let i = 0; i < 23; i += 1) {
@@ -18,7 +21,17 @@ const selectDepartureDate = new WizardScene(
       buttonArr.push(button)
     }
 
-    const buttonList = Markup.inlineKeyboard(buttonArr).extra()
+    // const command = ctx.update.callback_query && ctx.update.callback_query.data || false
+
+    const leftElem = ctx.update.callback_query && ctx.update.callback_query.message.reply_markup.inline_keyboard[0][0].callback_data || false
+
+    let timeButtons
+    if (!leftElem) {
+      timeButtons = [...buttonArr.splice(0,3), Markup.callbackButton('»', '»')]
+    }
+
+    const buttonList = Markup.inlineKeyboard(timeButtons).extra()
+
     ctx.reply(messages[ctx.session.language].chooseDepartureTime, buttonList)
 
     const onTimeSelected = () => {
