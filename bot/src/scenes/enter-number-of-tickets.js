@@ -8,7 +8,7 @@ const sendErrorMessage = (ctx, message) =>
 
 const enterNumberOfTickets = new WizardScene(
   'enterNumberOfTickets',
-  ctx => {
+  async ctx => {
     const buttonArr = []
 
     for (let i = 1; i < 5; i += 1) {
@@ -19,7 +19,7 @@ const enterNumberOfTickets = new WizardScene(
 
     const buttonList = Markup.inlineKeyboard(buttonArr).extra()
 
-    ctx.reply(messages[ctx.session.language].howManyTicketsYouNeed, buttonList)
+    await ctx.reply(messages[ctx.session.language].howManyTicketsYouNeed, buttonList)
 
     return ctx.wizard.next()
   },
@@ -27,9 +27,9 @@ const enterNumberOfTickets = new WizardScene(
     const amountOfTickets = parseInt(ctx.callbackQuery.data, 10)
 
     if (!amountOfTickets) {
-      sendErrorMessage(ctx)
+      await sendErrorMessage(ctx)
       // ctx.reply(messages[ctx.session.language].howManyTicketsYouNeed);
-      ctx.back()
+      await ctx.back()
     }
 
     const user = await User.findOne({ telegramId: ctx.from.id })
@@ -40,13 +40,14 @@ const enterNumberOfTickets = new WizardScene(
       departureStationId: ctx.session.departureStation,
       arrivalStationId: ctx.session.arrivalStation,
       departureDate: ctx.session.departureDate,
+      departureTime: ctx.session.departureTime,
       // amountOfTickets,
       ticketTypes: ctx.session.ticketTypes,
       status: 'ACTIVE',
     })
 
     if (existingJob) {
-      ctx.reply(messages[ctx.session.language].alreadyWatching)
+      await ctx.reply(messages[ctx.session.language].alreadyWatching)
     } else {
       await new Job({
         chatId: ctx.from.id,
@@ -56,16 +57,17 @@ const enterNumberOfTickets = new WizardScene(
         arrivalStationId: ctx.session.arrivalStation,
         arrivalStationName: ctx.session.arrivalStationName,
         departureDate: ctx.session.departureDate,
+        departureTime: ctx.session.departureTime,
         amountOfTickets,
         ticketTypes: ctx.session.ticketTypes,
       }).save()
 
-      ctx.reply(messages[ctx.session.language].sayWhenAvailable)
+      await ctx.reply(messages[ctx.session.language].sayWhenAvailable)
     }
 
     ctx.session.ticketTypes = []
 
-    ctx.scene.enter('initialScene')
+    await ctx.scene.enter('initialScene')
   }
 )
 

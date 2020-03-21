@@ -10,8 +10,8 @@ const sendErrorMessage = (ctx, message) =>
 
 const selectArrivalStation = new WizardScene(
   'selectArrivalStation',
-  ctx => {
-    ctx.reply(messages[ctx.session.language].enterArrivalStation)
+  async ctx => {
+    await ctx.reply(messages[ctx.session.language].enterArrivalStation)
 
     return ctx.wizard.next()
   },
@@ -26,28 +26,27 @@ const selectArrivalStation = new WizardScene(
     } catch (err) {
       logger.error('An error occured during arrival station fetch', err)
 
-      sendErrorMessage(
+      await sendErrorMessage(
         ctx,
         err.response && err.response.status === 503
           ? 'Service unavailable'
           : err.message
       )
       // ctx.reply(messages[ctx.session.language].enterArrivalStation);
-      ctx.scene.enter('initialScene')
 
-      return
+      return ctx.scene.enter('initialScene')
     }
 
     if (stations.length === 0) {
-      ctx.reply(messages[ctx.session.language].stationNotExists)
-      ctx.reply(messages[ctx.session.language].enterArrivalStation)
+      await ctx.reply(messages[ctx.session.language].stationNotExists)
+      await ctx.reply(messages[ctx.session.language].enterArrivalStation)
 
       return
     }
 
     ctx.session.stations = stations
 
-    ctx.reply(
+    await ctx.reply(
       messages[ctx.session.language].choseStation,
       Extra.markup(
         Markup.keyboard(stations.map(station => station.title))
@@ -56,17 +55,15 @@ const selectArrivalStation = new WizardScene(
       )
     )
 
-    ctx.wizard.next()
+    await ctx.wizard.next()
   },
-  ctx => {
+  async ctx => {
     const arrivalStation = ctx.session.stations.find(
       station => station.title === ctx.message.text
     )
 
     if (!arrivalStation) {
-      ctx.reply(messages[ctx.session.language].choseStation)
-
-      return
+      return ctx.reply(messages[ctx.session.language].choseStation)
     }
 
     ctx.session.arrivalStation = arrivalStation.value
@@ -74,7 +71,7 @@ const selectArrivalStation = new WizardScene(
 
     delete ctx.session.stations
 
-    ctx.scene.enter('selectDepartureTime')
+    await ctx.scene.enter('selectDepartureTime')
   }
 )
 

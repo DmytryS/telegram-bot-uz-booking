@@ -33,6 +33,7 @@ const getPlaceType = (wagonType) => placeTypes[`${wagonType.type}${wagonType.cla
  * @param {String} arrivalStationName arrival station name
  * @param {Array<Train>} trains array of trains
  * @param {String} departureDate departure date string
+ * @param {String} departureTime departure time string
  * @param {String} language language string
  */
 const printTrainsList = (
@@ -42,11 +43,13 @@ const printTrainsList = (
   arrivalStationName,
   trains,
   departureDate,
+  departureTime,
   language
 ) => {
   let responseText = `${messages[language].searchResults(
     trains.length,
-    departureDate
+    departureDate,
+    departureTime,
   )}\n`
   responseText += `${departureStationName} - ${arrivalStationName}\n`
   const trainTypes = trains

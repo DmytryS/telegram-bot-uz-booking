@@ -40,8 +40,8 @@ export default {
 /getwatchers - get ticket watchers list
 /stop - stop bot
 /help - help`,
-  searchResults: (trainsCount, departureDate) =>
-    `Found ${trainsCount} trains on ${departureDate}`,
+  searchResults: (trainsCount, departureDate, departureTime) =>
+    `Found ${trainsCount} trains on ${departureDate} ${departureTime}`,
   searchTicketsOnAnotherDate: '📅 Search tickets on another date',
   searchAnotherDirectTrains: '🚉 Find another trains',
   searchTicketsWithInterchange: '✈️🚲 Find tickets with interchange',

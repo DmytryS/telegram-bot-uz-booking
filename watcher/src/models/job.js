@@ -52,6 +52,10 @@ const jobSchema = new Schema(
       type: Date,
       required: true
     },
+    departureTime: {
+      type: String,
+      required: true
+    },
     amountOfTickets: {
       type: Number,
       required: true

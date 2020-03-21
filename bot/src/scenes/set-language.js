@@ -6,14 +6,14 @@ import messages from '../assets/messages/index.js'
 
 const setLanguage = new WizardScene(
   'setlanguage',
-  ctx => {
+  async ctx => {
     ctx.session.languages = {
       '🇬🇧 English': 'en',
       '🇷🇺 Русский': 'ru',
       '🇺🇦 Українська': 'uk',
     }
 
-    ctx.reply(
+    await ctx.reply(
       messages[ctx.session.language].choseLanguage,
       Extra.markup(
         Markup.keyboard(['🇬🇧 English', '🇷🇺 Русский', '🇺🇦 Українська'])
@@ -22,7 +22,7 @@ const setLanguage = new WizardScene(
       )
     )
 
-    ctx.wizard.next()
+    await ctx.wizard.next()
   },
   async ctx => {
     ctx.session.language = ctx.session.languages[ctx.message.text]
@@ -36,7 +36,7 @@ const setLanguage = new WizardScene(
       }
     )
 
-    ctx.scene.enter('initialScene')
+    await ctx.scene.enter('initialScene')
   }
 )
 

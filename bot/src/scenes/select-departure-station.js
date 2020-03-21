@@ -10,8 +10,8 @@ const sendErrorMessage = (ctx, message) =>
 
 const selectDepartureStation = new WizardScene(
   'selectDepartureStation',
-  ctx => {
-    ctx.reply(messages[ctx.session.language].enterDepartureStation)
+  async ctx => {
+    await ctx.reply(messages[ctx.session.language].enterDepartureStation)
 
     return ctx.wizard.next()
   },
@@ -26,27 +26,27 @@ const selectDepartureStation = new WizardScene(
       stations = response.data
     } catch (err) {
       logger.error('An error occured during departure station fetch', err)
-      sendErrorMessage(
+      await sendErrorMessage(
         ctx,
         err.response && err.response.status === 503
           ? 'Service unavailable'
           : err.message
       )
       // ctx.reply(messages[ctx.session.language].enterDepartureStation);
-      ctx.scene.enter('initialScene')
+      await ctx.scene.enter('initialScene')
 
       return
     }
 
     if (stations.length === 0) {
-      ctx.reply(messages[ctx.session.language].stationNotExists)
-      ctx.reply(messages[ctx.session.language].enterDepartureStation)
+      await ctx.reply(messages[ctx.session.language].stationNotExists)
+      await ctx.reply(messages[ctx.session.language].enterDepartureStation)
 
       return
     }
     ctx.session.stations = stations
 
-    ctx.reply(
+    await ctx.reply(
       messages[ctx.session.language].choseStation,
       Extra.markup(
         Markup.keyboard(stations.map(station => station.title))
@@ -55,15 +55,15 @@ const selectDepartureStation = new WizardScene(
       )
     )
 
-    ctx.wizard.next()
+    await ctx.wizard.next()
   },
-  ctx => {
+  async ctx => {
     const departureStation = ctx.session.stations.find(
       station => station.title === ctx.message.text
     )
 
     if (!departureStation) {
-      ctx.reply(messages[ctx.session.language].choseStation)
+      await ctx.reply(messages[ctx.session.language].choseStation)
 
       return
     }
@@ -73,7 +73,7 @@ const selectDepartureStation = new WizardScene(
 
     delete ctx.session.stations
 
-    ctx.scene.enter('selectArrivalStation')
+    await ctx.scene.enter('selectArrivalStation')
   }
 )
 

@@ -40,8 +40,8 @@ export default {
 /getwatchers - список направлений, за которыми я слежу
 /stop - остановить бота
 /help - помощь`,
-  searchResults: (trainsCount, departureDate) =>
-    `Нашел ${trainsCount} поездов на ${departureDate}`,
+  searchResults: (trainsCount, departureDate, departureTime) =>
+    `Нашел ${trainsCount} поездов на ${departureDate} ${departureTime}`,
   searchTicketsOnAnotherDate: '📅 Посмотреть на другую дату',
   searchAnotherDirectTrains: '🚉 Найти другие поезда',
   searchTicketsWithInterchange: '✈️🚲 Найти билеты с пересадкой',

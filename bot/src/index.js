@@ -12,7 +12,6 @@ const { BOT_TOKEN, AMQP_NOTIFICATIONS_QUEUE } = process.env
 const bot = new Telegraf(BOT_TOKEN)
 
 export const dateSelectEmitter = new EventEmitter()
-export const timeSelectEmitter = new EventEmitter()
 export const calendar = new Calendar(bot)
 
 amqp.listen(AMQP_NOTIFICATIONS_QUEUE, jobHandler(bot))
@@ -59,20 +58,7 @@ bot.hears(/\/stop_watch_(.*)/, commands.stopWatch)
 bot.start(commands.start)
 bot.help(commands.help)
 
-bot.on('callback_query', (context) => {
-  if(
-    /^\d{2}:00:00$/.test(context.update.callback_query.data)
-    || context.update.callback_query.data === '«'
-    || context.update.callback_query.data === '»'
-  ) {
-    timeSelectEmitter.emit(
-      `timeSelect-${context.update.callback_query.from.id}`,
-      context
-    )
-  }
-})
-
 bot.catch(err => {
-  logger.error(`An error occured in app ${JSON.stringify(err)}`)
+  logger.error(err)
 })
 bot.startPolling()

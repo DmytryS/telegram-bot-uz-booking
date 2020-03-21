@@ -55,7 +55,7 @@ const findTicket = async (message) => {
         job.departureStationId,
         job.arrivalStationId,
         moment(job.departureDate).format('YYYY-MM-DD'),
-        '00:00:00'
+        job.departureTime || '00:00:00'
       )
 
       if (!response || !response.data.data || !response.data.data.trains) {

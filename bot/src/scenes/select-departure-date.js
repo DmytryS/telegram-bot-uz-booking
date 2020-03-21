@@ -13,8 +13,8 @@ const sendErrorMessage = (ctx, message) =>
 
 const selectDepartureDate = new WizardScene(
   'selectDepartureDate',
-  ctx => {
-    ctx.reply(
+  async ctx => {
+    await ctx.reply(
       messages[ctx.session.language].choseDepartureDate,
       calendar
         .setMinDate(moment().toDate())
@@ -30,7 +30,7 @@ const selectDepartureDate = new WizardScene(
     const onDateSelected = async date => {
       ctx.session.departureDate = date
 
-      ctx.reply(date)
+      await ctx.reply(date)
 
       let trains = []
 
@@ -56,7 +56,7 @@ const selectDepartureDate = new WizardScene(
               ctx.session.departureStation,
               ctx.session.arrivalStation,
               ctx.session.departureDate,
-              ctx.session.departureTime,//'00:00:00'
+              ctx.session.departureTime,
             )
             break
           case 'INTERCHANGE':
@@ -64,7 +64,7 @@ const selectDepartureDate = new WizardScene(
               ctx.session.departureStation,
               ctx.session.arrivalStation,
               ctx.session.departureDate,
-              '00:00'
+              ctx.session.departureTime,
             )
             break
         }
@@ -120,7 +120,7 @@ const selectDepartureDate = new WizardScene(
           ])
         }
 
-        ctx.replyWithHTML(
+        await ctx.replyWithHTML(
           print.printTrainsList(
             ctx.session.departureStation,
             ctx.session.departureStationName,
@@ -128,6 +128,7 @@ const selectDepartureDate = new WizardScene(
             ctx.session.arrivalStationName,
             trains,
             ctx.session.departureDate,
+            ctx.session.departureTime,
             ctx.session.language
           ),
           Markup.inlineKeyboard(inlineKeyboardButtons).extra()
@@ -136,15 +137,15 @@ const selectDepartureDate = new WizardScene(
         return ctx.wizard.next()
       } catch (err) {
         logger.error('An error occured during trains fetch', err)
-        sendErrorMessage(
+        await sendErrorMessage(
           ctx,
           err.response && err.response.status === 503
             ? 'Service unavailable'
             : err.message
         )
 
-        ctx.reply(messages[ctx.session.language].tryAgain)
-        ctx.scene.enter('initialScene')
+        await ctx.reply(messages[ctx.session.language].tryAgain)
+        await ctx.scene.enter('initialScene')
       }
     }
 
@@ -154,29 +155,29 @@ const selectDepartureDate = new WizardScene(
 
     dateSelectEmitter.once(`dateSelect-${userId}`, onDateSelected)
   },
-  ctx => {
+  async ctx => {
     if (!ctx || !ctx.callbackQuery || !ctx.callbackQuery.data) {
       ctx.scene.leave()
     } else {
       switch (ctx.callbackQuery.data) {
         case 'FIND_ANOTHER_DATE_TICKETS':
-          ctx.scene.enter('selectDepartureTime')
-          break
+          return ctx.scene.enter('selectDepartureTime')
+          // break
         case 'FIND_DIRECT_TICKETS':
           ctx.session.ticketSearchType = 'DIRECT'
-          ctx.scene.enter('selectDepartureStation')
-          break
+          return ctx.scene.enter('selectDepartureStation')
+          // break
         case 'SET_LANGUAGE':
-          ctx.scene.enter('setlanguage')
-          break
+          return ctx.scene.enter('setlanguage')
+          // break
         case 'FIND_INTERCHANGE_TICKETS':
           // TODO
           ctx.session.ticketSearchType = 'INTERCHANGE'
-          ctx.scene.enter('selectDepartureTime')
-          break
+          return ctx.scene.enter('selectDepartureTime')
+          // break
         case 'REMIND_ME_WHEN_AVAILABLE':
-          ctx.scene.enter('selectSeatType')
-          break
+          return ctx.scene.enter('selectSeatType')
+          // break
         case 'FIND_RETURN_TICKET':
           // eslint-disable-next-line
           const { departureStation } = ctx.session;
@@ -184,10 +185,10 @@ const selectDepartureDate = new WizardScene(
           ctx.session.ticketSearchType = 'DIRECT'
           ctx.session.departureStation = ctx.session.arrivalStation
           ctx.session.arrivalStation = departureStation
-          ctx.scene.enter('selectDepartureTime')
-          break
+          return ctx.scene.enter('selectDepartureTime')
+          // break
         default:
-          ctx.scene.leave()
+          await ctx.scene.leave()
           break
       }
     }
