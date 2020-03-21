@@ -38,6 +38,9 @@ const auditSchema = new Schema(
     departureDate: {
       type: Date,
     },
+    departureTime: {
+      type: Date,
+    },
   },
   {
     timestamps: true

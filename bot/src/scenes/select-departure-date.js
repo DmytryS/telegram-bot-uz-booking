@@ -47,6 +47,7 @@ const selectDepartureDate = new WizardScene(
           arrivalStationId: ctx.session.arrivalStation,
           arrivalStationName: ctx.session.arrivalStationName,
           departureDate: ctx.session.departureDate,
+          departureTime: ctx.session.departureTime,
         }).save()
 
         // eslint-disable-next-line
