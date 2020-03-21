@@ -23,7 +23,7 @@ const selectDepartureDate = new WizardScene(
         messages[ctx.session.language].chooseDepartureTime,
         Markup.inlineKeyboard(buttons).extra()
       )
-      await ctx.scene.enter('selectDepartureDate')
+      return ctx.scene.enter('selectDepartureDate')
     }
 
     const command = ctx.update.callback_query && ctx.update.callback_query.data !== 'FIND_ANOTHER_DATE_TICKETS' && ctx.update.callback_query.data || false
