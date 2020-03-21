@@ -33,57 +33,37 @@ const selectSeatType = new WizardScene(
         }
       }
 
-      const buttonList = Markup.inlineKeyboard([
-        [
-          Markup.callbackButton(
-            `${ctx.session.ticketTypes.indexOf('COMPARTMENT') > -1 ? '✅ ' : ''}${
-              messages[ctx.session.language].compartment
-            }`,
-            'COMPARTMENT'
-          ),
-          Markup.callbackButton(
-            `${ctx.session.ticketTypes.indexOf('BERTH') > -1 ? '✅ ' : ''}${
-              messages[ctx.session.language].berth
-            }`,
-            'BERTH'
-          ),
-          Markup.callbackButton(
-            `${ctx.session.ticketTypes.indexOf('DE_LUXE') > -1 ? '✅ ' : ''}${
-              messages[ctx.session.language].deLuxe
-            }`,
-            'DE_LUXE'
-          ),
-        ],
-        [
-          Markup.callbackButton(
-            `${
-              ctx.session.ticketTypes.indexOf('SEATING_1ST_CLASS') > -1
-                ? '✅ '
-                : ''
-            }${messages[ctx.session.language].seating1stClass}`,
-            'SEATING_1ST_CLASS'
-          ),
-        ],
-        [
-          Markup.callbackButton(
-            `${
-              ctx.session.ticketTypes.indexOf('SEATING_2ND_CLASS') > -1
-                ? '✅ '
-                : ''
-            }${messages[ctx.session.language].seating2ndClass}`,
-            'SEATING_2ND_CLASS'
-          ),
-        ],
-        [
-          Markup.callbackButton(
-            `${
-              ctx.session.ticketTypes.indexOf('SEATING_3D_CLASS') > -1 ? '✅' : ''
-            }${messages[ctx.session.language].seating3dClass}`,
-            'SEATING_3D_CLASS'
-          ),
-        ],
-        [Markup.callbackButton(messages[ctx.session.language].next, 'NEXT')],
-      ]).extra()
+      const buttonList = Markup.inlineKeyboard([[
+        Markup.callbackButton(
+          `${messages[ctx.session.language].compartment} ${ctx.session.ticketTypes.indexOf('COMPARTMENT') > -1 ? '✅' : ''}`,
+          'COMPARTMENT'
+        ),
+        Markup.callbackButton(
+          `${messages[ctx.session.language].berth} ${ctx.session.ticketTypes.indexOf('BERTH') > -1 ? '✅' : ''}`,
+          'BERTH'
+        ),
+        Markup.callbackButton(
+          `${messages[ctx.session.language].deLuxe} ${ctx.session.ticketTypes.indexOf('DE_LUXE') > -1 ? '✅' : ''}`,
+          'DE_LUXE'
+        ),
+      ], [
+        Markup.callbackButton(
+          `${messages[ctx.session.language].seating1stClass} ${ctx.session.ticketTypes.indexOf('SEATING_1ST_CLASS') > -1 ? '✅': ''}`,
+          'SEATING_1ST_CLASS'
+        ),
+      ], [
+        Markup.callbackButton(
+          `${messages[ctx.session.language].seating2ndClass} ${ctx.session.ticketTypes.indexOf('SEATING_2ND_CLASS') > -1 ? '✅' : ''}`,
+          'SEATING_2ND_CLASS'
+        ),
+      ], [
+        Markup.callbackButton(
+          `${messages[ctx.session.language].seating3dClass} ${ctx.session.ticketTypes.indexOf('SEATING_3D_CLASS') > -1 ? '✅' : ''}`,
+          'SEATING_3D_CLASS'
+        ),
+      ], [
+        Markup.callbackButton(messages[ctx.session.language].next, 'NEXT')
+      ]]).extra()
 
       if (ctx.callbackQuery.data === 'REMIND_ME_WHEN_AVAILABLE') {
         await ctx.reply(messages[ctx.session.language].selectWagonType, buttonList)

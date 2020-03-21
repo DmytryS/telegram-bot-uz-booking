@@ -19,7 +19,10 @@ const selectDepartureDate = new WizardScene(
       const buttons = ctx.update.callback_query.message.reply_markup.inline_keyboard[0]
         .map(button => Markup.callbackButton(ctx.session.departureTime === button.text ? `${button.text} ✅` : button.text, button.callback_data))
 
-      await ctx.editMessageText(messages[ctx.session.language].chooseDepartureTime, Markup.inlineKeyboard(buttons).extra())
+      await ctx.editMessageText(
+        messages[ctx.session.language].chooseDepartureTime,
+        Markup.inlineKeyboard(buttons).extra()
+      )
       await ctx.scene.enter('selectDepartureDate')
     }
 

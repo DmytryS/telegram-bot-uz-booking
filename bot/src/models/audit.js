@@ -39,7 +39,7 @@ const auditSchema = new Schema(
       type: Date,
     },
     departureTime: {
-      type: Date,
+      type: String,
     },
   },
   {
