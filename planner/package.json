@@ -17,18 +17,15 @@
   "author": "Dmytro Shvaika",
   "license": "MIT",
   "dependencies": {
-    "amqplib": "^0.5.3",
-    "dotenv": "^6.2.0",
-    "lodash": "^4.17.11",
-    "moment-timezone": "^0.5.23",
-    "mongoose": "^5.4.4",
+    "amqplib": "^0.5.5",
+    "dotenv": "^8.2.0",
+    "lodash": "^4.17.15",
+    "moment-timezone": "^0.5.28",
+    "mongoose": "^5.9.6",
     "winston": "^3.2.1"
   },
   "devDependencies": {
-    "eslint": "^5.15.3",
-    "nodemon": "^1.18.10"
-  },
-  "prettier": {
-    "singleQuote": true
+    "eslint": "^6.8.0",
+    "nodemon": "^2.0.2"
   }
 }
