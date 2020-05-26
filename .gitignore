@@ -7,3 +7,4 @@ package-lock.json
 /logs/*
 .env
 /build/*
+.DS_store

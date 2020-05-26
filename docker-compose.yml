@@ -3,7 +3,7 @@ services:
   mongodb:
     container_name: mongodb
     hostname: mongodb
-    image: "mongo:latest"
+    image: mongo:latest
     restart: always
     ports:
       - "27017:27017"
@@ -19,33 +19,54 @@ services:
       - "5672:5672"
       - "15672:15672"
   bot:
-    build:
-      context: ./bot
+    container_name: bot
+    # build:
+    #   context: ./bot
+    image: node:12-alpine
+    command: npm start
     restart: always
     depends_on:
       - mongodb
       - rabbitmq
+    environment:
+      - NODE_ENV=development
     env_file:
       - ./bot/.env
+    user: node:node
+    working_dir: /app/bot
     volumes:
-      - ./bot/src:/usr/src/app/src:cached
+      - ./:/app
   watcher:
-    build:
-      context: ./watcher
+    container_name: watcher
+    # build:
+    #   context: ./watcher
+    image: node:12-alpine
+    command: npm start
     restart: always
     depends_on:
       - bot
+    environment:
+      - NODE_ENV=development
     env_file:
       - ./watcher/.env
+    user: node:node
+    working_dir: /app/watcher
     volumes:
-      - ./watcher/src:/usr/src/app/src:cached
+      - ./:/app
   planner:
-    build:
-      context: ./planner
+    container_name: planner
+    # build:
+    #   context: ./planner
+    image: node:12-alpine
+    command: npm start
     restart: always
     depends_on:
       - watcher
+    environment:
+      - NODE_ENV=development
     env_file:
       - ./planner/.env
+    user: node:node
+    working_dir: /app/planner
     volumes:
-      - ./planner/src:/usr/src/app/src:cached
+      - ./:/app

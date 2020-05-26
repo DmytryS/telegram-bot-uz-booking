@@ -2,7 +2,7 @@ import WizardScene from 'telegraf/scenes/wizard/index.js'
 import Markup from 'telegraf/markup.js'
 import moment from 'moment'
 import UzClient from 'uz-booking-client'
-import logger from '../lib/logger.js'
+import { logger } from '../lib/index.js'
 import { Audit, User } from '../models/index.js'
 import messages from '../assets/messages/index.js'
 import { dateSelectEmitter, calendar } from '../index.js'
@@ -71,7 +71,8 @@ const selectDepartureDate = new WizardScene(
         }
 
         if (!response || (response.data.data && !response.data.data.trains)) {
-          throw new Error(response.data.data)
+          logger.error(response.data.data)
+          throw new Error(JSON.stringify(response.data.data))
         }
 
         trains = response.data.data.trains.filter(

@@ -8,9 +8,16 @@ https://booking.uz.gov.ua/ru/
 
 To start all services:
 ```
-docker-compose up
+npm install
+npm run bootstrap
+npm run dev 
 ```
 Do not forgot to change telegram bot token `BOT_TOKEN` at `./bot/.env` to yours.
 
 # Start on kubernetes
 Every microservice have deployments at `./%sevice-name%/provisioning`
+
+# Screenshots
+
+<img src="screenshots/found-trains.png?raw=true" width="45%">
+<img src="screenshots/flow.png?raw=true" width="100%">
