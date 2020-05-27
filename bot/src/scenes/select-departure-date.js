@@ -71,7 +71,6 @@ const selectDepartureDate = new WizardScene(
         }
 
         if (!response || (response.data.data && !response.data.data.trains)) {
-          logger.error(response.data.data)
           throw new Error(JSON.stringify(response.data.data))
         }
 
@@ -138,7 +137,7 @@ const selectDepartureDate = new WizardScene(
 
         return ctx.wizard.next()
       } catch (err) {
-        logger.error('An error occured during trains fetch', err)
+        logger.error('An error occured during trains fetch ', err)
         await sendErrorMessage(
           ctx,
           err.response && err.response.status === 503
