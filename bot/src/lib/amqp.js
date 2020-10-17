@@ -6,12 +6,63 @@ import { inspect } from 'util'
 
 const RETRIES = 5
 const RESPONSE_TIMEOUT = 1000
-const { RABBIT_MQ_URI, RABBIT_RECONNECT_INTERVAL } = process.env
+const {
+  AMQP_URI,
+  AMQP_RECONNECT_INTERVAL,
+} = process.env
 const CONNECTIONS = {
   connection: false,
-  channel: false
+  channel: false,
 }
 let counter = 0
+
+const createConnection = async infinityRetries => {
+  counter++
+  logger.info(`[AMQP] Trying to connect ${AMQP_URI}`)
+
+  try {
+    CONNECTIONS.connection = await amqp.connect(AMQP_URI)
+
+    logger.info(`[AMQP] Connected ${AMQP_URI}`)
+    logger.info('[AMQP] Creating channel')
+
+    // eslint-disable-next-line
+    CONNECTIONS.channel = await CONNECTIONS.connection.createChannel()
+    CONNECTIONS.connection.on('error', onError)
+
+    // eslint-disable-next-line
+    CONNECTIONS.channel.responseEmitter = new EventEmitter()
+    CONNECTIONS.channel.responseEmitter.setMaxListeners(0)
+    CONNECTIONS.channel.consume(
+      'amq.rabbitmq.reply-to',
+      msg => {
+        CONNECTIONS.channel.responseEmitter.emit(
+          msg.properties.correlationId,
+          msg,
+        )
+      },
+      { noAck: true },
+    )
+
+    clearInterval(this)
+
+    logger.info('[AMQP] Created channel')
+
+    return true
+  } catch (err) {
+    // eslint-disable-next-line
+    CONNECTIONS.channel = false
+    // eslint-disable-next-line
+    CONNECTIONS.connection = false
+
+    logger.error(`[AMQP] ERROR: ${JSON.stringify(err)}`)
+
+    if (counter >= RETRIES && !infinityRetries) {
+      clearInterval(this)
+      throw new Error(`[AMQP] Failed to connect to ${AMQP_URI}`)
+    }
+  }
+}
 
 const formatOutputData = (data) => {
   if (typeof data === 'object' && data !== null) {
@@ -28,59 +79,23 @@ const onError = (err) => {
 }
 
 const connect = (infinityRetries) => new Promise((resolve, reject) => {
-  setInterval(
-    async function () {
-      counter++
-      logger.info(`[AMQP] Trying to connect ${RABBIT_MQ_URI}`)
-
-      try {
-        CONNECTIONS.connection = await amqp.connect(RABBIT_MQ_URI)
-
-        logger.info(`[AMQP] Connected ${RABBIT_MQ_URI}`)
-        logger.info('[AMQP] Creating channel')
-
-        // eslint-disable-next-line
-        CONNECTIONS.channel = await CONNECTIONS.connection.createChannel()
-        CONNECTIONS.connection.on('error', onError)
-
-        // eslint-disable-next-line
-        CONNECTIONS.channel.responseEmitter = new EventEmitter()
-        CONNECTIONS.channel.responseEmitter.setMaxListeners(0)
-        CONNECTIONS.channel.consume(
-          'amq.rabbitmq.reply-to',
-          msg => {
-            CONNECTIONS.channel.responseEmitter.emit(
-              msg.properties.correlationId,
-              msg,
-            )
-          },
-          { noAck: true },
+  createConnection(false)
+    .catch((err) => {
+      if (infinityRetries) {
+        setInterval(
+          createConnection(infinityRetries),
+          AMQP_RECONNECT_INTERVAL,
         )
-
-        clearInterval(this)
-
-        logger.info('[AMQP] Created channel')
-
-        resolve()
-      } catch (err) {
-        // eslint-disable-next-line
-        CONNECTIONS.channel = false
-        // eslint-disable-next-line
-        CONNECTIONS.connection = false
-
-        logger.error(`[AMQP] ERROR: ${JSON.stringify(err)}`)
-
-        if (counter >= RETRIES && !infinityRetries) {
-          clearInterval(this)
-          reject(`[AMQP] Failed to connect to ${RABBIT_MQ_URI}`)
-        }
+      } else {
+        reject(err.message)
       }
-    },
-    RABBIT_RECONNECT_INTERVAL
-  )
+    })
+    .then(() => {
+      resolve()
+    })
 })
 
-export const listen = async (queue, callback) => {
+export const listen = async (queue, callback, prefetchNumber) => {
   if (!CONNECTIONS.connection) {
     await connect(true)
   }
@@ -89,9 +104,14 @@ export const listen = async (queue, callback) => {
   await channel.assertQueue(
     queue,
     {
-      durable: false
-    }
+      durable: false,
+    },
   )
+
+  if (prefetchNumber) {
+    logger.info(`[AMQP] Setting prefetch number to "${prefetchNumber}"`)
+    channel.prefetch(1)
+  }
 
   logger.info(`[AMQP] Listening ${queue} queue`)
 
@@ -99,13 +119,17 @@ export const listen = async (queue, callback) => {
     let ouputMessage = {}
 
     try {
-      ouputMessage = await callback(JSON.parse(message.content.toString('utf8')))
+      message.content = JSON.parse(message.content.toString('utf8'))
+
+      logger.info(`Received message from queue ${queue}`, message.content)
+
+      ouputMessage = await callback(message.content)
     } catch (err) {
       logger.error(`[AMQP] Listener ERROR: ${inspect(err, { output: true, depth: 4 })}`)
 
       ouputMessage.error = {
         message: err.message,
-        stack: err.stack
+        stack: err.stack,
       }
     }
 
@@ -116,8 +140,8 @@ export const listen = async (queue, callback) => {
         replyTo,
         formatOutputData(ouputMessage),
         {
-          correlationId
-        }
+          correlationId,
+        },
       )
     }
 
@@ -132,7 +156,7 @@ export const publish = async (queue, message) => {
   }
   const { channel } = CONNECTIONS
 
-  logger.info(`[AMQP] Publishing data to ${queue}`)
+  logger.info(`[AMQP] Publishing data to ${queue}`, message)
 
   // await CONNECTIONS.channel.assertExchange(queue, 'fanout')
   // return CONNECTIONS.channel.publish(
@@ -140,6 +164,10 @@ export const publish = async (queue, message) => {
   //   '',
   //   formatOutputData(message),
   // )
+
+  if (!channel) {
+    throw new Error('Failed to send message')
+  }
 
   await channel.assertQueue(queue, { durable: false })
   return channel.sendToQueue(
@@ -160,8 +188,8 @@ export const request = async (queue, message) => {
   await channel.assertQueue(
     queue,
     {
-      durable: false
-    }
+      durable: false,
+    },
   )
 
   return new Promise((resolve, reject) => {
@@ -173,7 +201,7 @@ export const request = async (queue, message) => {
         clearTimeout(timeout)
         channel.responseEmitter.removeAllListeners(correlationId)
         resolve(JSON.parse(response.content.toString('utf8')))
-      }
+      },
     )
 
     CONNECTIONS.channel.sendToQueue(
@@ -181,7 +209,7 @@ export const request = async (queue, message) => {
       formatOutputData(message),
       {
         correlationId,
-        replyTo: 'amq.rabbitmq.reply-to'
+        replyTo: 'amq.rabbitmq.reply-to',
       },
     )
 
@@ -191,7 +219,7 @@ export const request = async (queue, message) => {
         channel.responseEmitter.removeAllListeners(correlationId)
         reject(new Error('timeout'))
       },
-      RESPONSE_TIMEOUT
+      RESPONSE_TIMEOUT,
     )
   })
 }
@@ -210,5 +238,5 @@ export const close = async () => {
   // eslint-disable-next-line
   CONNECTIONS.connection = false
 
-  logger.info(`[AMQP] Disconnected from ${RABBIT_MQ_URI}`)
+  logger.info(`[AMQP] Disconnected from ${AMQP_URI}`)
 }

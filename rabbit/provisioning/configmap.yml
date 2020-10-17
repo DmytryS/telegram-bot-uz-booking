@@ -3,7 +3,7 @@ apiVersion: v1
 metadata:
   name: amqp
 data:
-  RABBIT_MQ_URI: amqp://rabbit.rabbit
-  RABBIT_RECONNECT_INTERVAL: "10000"
+  AMQP_URI: amqp://rabbit.rabbit
+  AMQP_RECONNECT_INTERVAL: "10000"
   AMQP_NOTIFICATIONS_QUEUE: notification
   AMQP_WATCHER_QUEUE: watcher
