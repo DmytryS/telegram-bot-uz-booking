@@ -30,7 +30,7 @@
     "winston-transport": "^4.4.0"
   },
   "devDependencies": {
-    "eslint": "^7.11.0",
+    "eslint": "^7.28.0",
     "nodemon": "^2.0.5"
   }
 }
