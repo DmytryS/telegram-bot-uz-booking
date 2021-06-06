@@ -12,6 +12,6 @@
     "postversion": "git push && git push --tags"
   },
   "devDependencies": {
-    "lerna": "^3.22.0"
+    "lerna": "^4.0.0"
   }
 }
